@@ -67,6 +67,10 @@ const InvoiceSchema: Schema = new Schema({
     type: Number, 
     default: 0 
   },
+  paymentOptions: {
+    type: String,
+    enum: ['Credit Card', 'Cash', 'Check', 'Wire'],
+  },
 
 }, {
   timestamps: true,

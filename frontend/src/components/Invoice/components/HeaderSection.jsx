@@ -78,6 +78,18 @@ const HeaderSection = ({ searchTerm, setSearchTerm, register, balanceDue, errors
             placeholder="Will be filled from load number"
           />
         </Grid>
+        <Grid item md={12}>
+          <TextField
+            fullWidth
+            label="Billing Address"
+            multiline
+            rows={4}
+            {...register('customerAddress')}
+            error={!!errors.customerAddress}
+            helperText={errors.customerAddress?.message}
+            placeholder="Enter billing address"
+          />
+        </Grid>
       </Grid>
     </Grid>
   );

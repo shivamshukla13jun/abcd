@@ -218,6 +218,7 @@ useEffect(() => {
             register={register}
             balanceDue={totals.balanceDue}
             errors={errors}
+            setValue={setValue}
           />
           </Grid>
           <Grid item xs={6}>
