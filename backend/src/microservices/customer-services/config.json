@@ -1,0 +1,14 @@
+{
+  "baseUrl": "/api/customers",
+  "author": "Shivam Shukla",
+  "service": "Customer Service",
+  "CreatedAt": "15 feb 2025 at 17:00",
+  "UpdateddAt": "20 feb 2025 at 16:00",
+  "endpoints": {
+    "list": "/",
+    "create": "/create",
+    "update": "/update/:id",
+    "delete": "/delete/:id",
+    "details": "/:id"
+  }
+} 

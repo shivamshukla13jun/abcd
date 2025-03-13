@@ -1,0 +1,13 @@
+{
+  "baseUrl": "/api/accounting",
+  "author": "Shivam Shukla",
+  "service": "Accounting Service",
+  "CreatedAt": "15 feb 2025 at 17:00",
+  "UpdateddAt": "20 feb 2025 at 16:00",
+  "endpoints": {
+    "payments": "/payments",
+    "invoices": "/invoices",
+    "expenses": "/expenses",
+    "documents": "/documents"
+  }
+} 

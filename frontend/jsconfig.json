@@ -1,0 +1,15 @@
+// jsconfig.json
+{
+    "compilerOptions": {
+      "baseUrl": "src",
+      "paths": {
+        "@/*": ["./*"],
+        "@components/*": ["components/*"],
+        "@styles/*": ["styles/*"],
+        "@assets/*": ["assets/*"],
+        "@pages/*": ["pages/*"],
+        "@redux/*": ["redux/*"],
+        "@data/*": ["data/*"]
+      }
+    }
+  }

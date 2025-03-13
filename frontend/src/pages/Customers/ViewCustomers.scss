@@ -1,0 +1,152 @@
+@import '@styles/variables';
+
+.view-customers {
+  padding: 20px;
+  background-color: #f8f9fa;
+
+  &__container {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eee;
+
+    h2 {
+      font-size: 20px;
+      margin: 0;
+      color: #2c3e50;
+    }
+  }
+
+  &__create-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    font-size: 14px;
+
+    &:hover {
+      background: #0056b3;
+    }
+
+    svg {
+      font-size: 18px;
+    }
+  }
+
+  &__table-wrapper {
+    overflow-x: auto;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+
+      th {
+        background: #f8f9fa;
+        padding: 8px 12px;
+        font-weight: 600;
+        color: #2c3e50;
+        border-bottom: 2px solid #dee2e6;
+        white-space: nowrap;
+        text-align: left;
+        font-size: 13px;
+      }
+
+      td {
+        padding: 8px 12px;
+        border-bottom: 1px solid #eee;
+        color: #2c3e50;
+        vertical-align: middle;
+
+        div {
+          margin-bottom: 2px;
+          &:last-child {
+            margin-bottom: 0;
+            color: #6c757d;
+            font-size: 12px;
+          }
+        }
+      }
+
+      tbody tr {
+        &:hover {
+          background-color: #f8f9fa;
+        }
+      }
+    }
+  }
+
+  .customer-rating {
+    font-size: 11px;
+    padding: 4px 8px;
+    font-weight: 500;
+  }
+
+  .customer-status {
+    font-size: 11px;
+    padding: 4px 8px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+
+    button {
+      padding: 4px 8px;
+      font-size: 14px;
+
+      &:hover {
+        transform: translateY(-1px);
+      }
+    }
+  }
+}
+
+// Responsive styles
+@media (max-width: 768px) {
+  .view-customers {
+    padding: 10px;
+
+    &__header {
+      flex-direction: column;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    &__create-btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    &__table-wrapper {
+      table {
+        td, th {
+          padding: 6px 8px;
+          font-size: 12px;
+        }
+      }
+    }
+  }
+}

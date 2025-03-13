@@ -1,0 +1,71 @@
+@import '@styles/_variables.scss';
+
+.documents-page {
+  .documents-table {
+    background: $white;
+    border-radius: $border-radius;
+    box-shadow: $box-shadow-sm;
+
+    th {
+      background: $gray-50;
+      padding: $gap-md;
+      font-weight: 600;
+      border-bottom: 2px solid $gray-200;
+      white-space: nowrap;
+
+      .sort-icon {
+        font-size: 0.75rem;
+        margin-left: $gap-xs;
+        color: $gray-500;
+        cursor: pointer;
+
+        &:hover {
+          color: $primary;
+        }
+      }
+    }
+
+    td {
+      padding: $gap-md;
+      vertical-align: middle;
+    }
+
+    .description-cell {
+      max-width: 200px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .form-check-input {
+      cursor: pointer;
+    }
+
+    .action-button {
+      color: $gray-600;
+      padding: 0;
+      
+      &:hover, &:focus {
+        color: $primary;
+      }
+    }
+  }
+
+  .dropdown-menu {
+    padding: $gap-xs 0;
+    box-shadow: $box-shadow;
+    border: 1px solid $gray-200;
+    
+    .dropdown-item {
+      padding: $gap-xs $gap-md;
+      
+      &:hover {
+        background-color: $gray-100;
+      }
+      
+      &.text-danger:hover {
+        background-color: $danger-light;
+      }
+    }
+  }
+}

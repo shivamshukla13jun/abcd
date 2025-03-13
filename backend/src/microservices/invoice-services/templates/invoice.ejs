@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Invoice</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .invoice-details {
+      margin-bottom: 20px;
+    }
+    .customer-details {
+      margin-bottom: 20px;
+    }
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    .items-table th, .items-table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    .totals {
+      float: right;
+      width: 300px;
+    }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 50px;
+      padding-top: 20px;
+      border-top: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>INVOICE</h1>
+  </div>
+
+  <div class="invoice-details">
+    <p><strong>Invoice #:</strong> <%= invoice.invoiceNumber %></p>
+    <p><strong>Date:</strong> <%= new Date(invoice.invoiceDate).toLocaleDateString() %></p>
+    <p><strong>Due Date:</strong> <%= new Date(invoice.dueDate).toLocaleDateString() %></p>
+  </div>
+
+  <div class="customer-details">
+    <h3>Customer Details:</h3>
+    <p><strong>Name:</strong> <%= load.customerId.customerName %></p>
+    <p><strong>Email:</strong> <%= load.customerId.email %></p>
+    <p><strong>Address:</strong> <%= invoice.location %></p>
+  </div>
+
+  <table class="items-table">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Description</th>
+        <th>Quantity</th>
+        <th>Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% load.documentUpload.items.forEach(function(item) { %>
+        <tr>
+          <td><%= item.itemDetails %></td>
+          <td><%= item.description %></td>
+          <td><%= item.qty %></td>
+          <td>$<%= item.amount.toFixed(2) %></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+
+  <div class="totals">
+    <div class="total-row">
+      <span>Sub Total:</span>
+      <span>$<%= subTotal.toFixed(2) %></span>
+    </div>
+    <div class="total-row">
+      <span>Discount (<%= invoice.discountPercent %>%):</span>
+      <span>$<%= totalDiscount.toFixed(2) %></span>
+    </div>
+    <div class="total-row">
+      <span>Total:</span>
+      <span>$<%= total.toFixed(2) %></span>
+    </div>
+    <div class="total-row">
+      <span>Deposit:</span>
+      <span>$<%= invoice.deposit.toFixed(2) %></span>
+    </div>
+    <div class="total-row">
+      <span><strong>Balance Due:</strong></span>
+      <span><strong>$<%= balanceDue.toFixed(2) %></strong></span>
+    </div>
+  </div>
+
+  <% if (invoice.terms_conditions) { %>
+    <div class="terms">
+      <h3>Terms & Conditions:</h3>
+      <p><%= invoice.terms_conditions %></p>
+    </div>
+  <% } %>
+
+  <div class="footer">
+    <p>Thank you for your business!</p>
+  </div>
+</body>
+</html> 

@@ -1,0 +1,22 @@
+export const paths={
+    loads:"/loads",
+    createload:"/loads/create",
+    editload:"/loads/edit",
+    viewload:"/loads/view",
+    drivers:"/drivers",
+    createdriver:"/drivers/create",
+    editdriver:"/drivers/edit",
+    viewdriver:"/drivers/view",
+    customers:"/customers",
+    createcustomer:"/customers/create",
+    editcustomer:"/customers/edit",
+    viewcustomer:"/customers/view",
+    assets:"/assets",
+    createasset:"/assets/create",
+    editasset:"/assets/edit",
+    viewasset:"/assets/view",
+    pickups:"/pickups",
+    createpickup:"/pickups/create",
+    editpickup:"/pickups/edit",
+    
+}

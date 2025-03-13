@@ -1,0 +1,23 @@
+@use "variables";
+
+.sidebar-bg {
+  background-color: variables.$background-color !important;
+  }
+.sidebar-text {
+color: variables.$text-dark !important
+  }
+.sidebar-collapsed {
+    width: 80px !important;
+  }
+  
+  .sidebar-expanded {
+    width: 250px !important;
+  }
+  
+  button {
+    border: none;
+    background: transparent;
+    color: white;
+    cursor: pointer;
+  }
+  

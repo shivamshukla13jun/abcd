@@ -1,0 +1,50 @@
+.dashboard-container {
+  padding: 2rem;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+
+  h1 {
+    color: #343a40;
+    font-weight: 600;
+  }
+
+  .card {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    .card-header {
+      background-color: #fff;
+      border-bottom: 1px solid #e9ecef;
+      font-weight: 600;
+      padding: 1rem;
+    }
+
+    .card-body {
+      padding: 1.5rem;
+    }
+  }
+
+  // Chart customization
+  .recharts-default-tooltip {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    border: none !important;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .recharts-cartesian-grid-horizontal line,
+  .recharts-cartesian-grid-vertical line {
+    stroke: #e9ecef;
+  }
+
+  .recharts-xAxis .recharts-cartesian-axis-tick-value,
+  .recharts-yAxis .recharts-cartesian-axis-tick-value {
+    fill: #6c757d;
+    font-size: 12px;
+  }
+
+  .recharts-legend-item-text {
+    color: #495057 !important;
+  }
+}

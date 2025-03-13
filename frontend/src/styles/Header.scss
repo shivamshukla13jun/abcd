@@ -1,0 +1,25 @@
+@use "variables";
+
+.navbar {
+  height: 60px;
+  background-color: variables.$background-color !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-nav {
+  .nav-link {
+    color: variables.$text-dark !important;
+    font-size: variables.$font-md;
+    margin-left: 15px;
+
+    &:hover {
+      color: variables.$primary-color !important;
+    }
+  }
+}
+.profile-image {
+  width: variables.$profile-size;
+  height: variables.$profile-size;
+  border-radius: 50%;
+  border: 1px solid variables.$border-color;
+}

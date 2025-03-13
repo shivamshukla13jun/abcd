@@ -1,0 +1,99 @@
+// DocumentUpload.scss
+
+.container {
+    padding: 20px;
+  
+    .card {
+      margin-bottom: 20px;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  
+      h5 {
+        margin-bottom: 15px;
+        font-weight: bold;
+      }
+    }
+  
+    .dropzone {
+      border: 2px dashed #007bff;
+      border-radius: 5px;
+      padding: 40px;
+      background-color: #f9f9f9;
+      cursor: pointer;
+      transition: background-color 0.2s;
+  
+      &:hover {
+        background-color: #e9ecef;
+      }
+  
+      p {
+        margin: 10px 0;
+        color: #6c757d;
+      }
+  
+      button {
+        margin-top: 10px;
+      }
+    }
+  
+    ul {
+      list-style: none;
+      padding: 0;
+  
+      li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 5px 10px;
+        background-color: #f1f1f1;
+        margin: 5px 0;
+        border-radius: 5px;
+  
+        button {
+          margin-left: 10px;
+        }
+      }
+    }
+  
+    .custom-control {
+      margin-right: 15px;
+  
+      input {
+        margin-right: 5px;
+      }
+    }
+  
+    table {
+      th, td {
+        vertical-align: middle;
+      }
+  
+      td {
+        input {
+          width: 100%;
+        }
+  
+        svg {
+          cursor: pointer;
+          transition: transform 0.2s;
+  
+          &:hover {
+            transform: scale(1.1);
+          }
+        }
+      }
+    }
+  
+    .totals {
+      h5 {
+        margin: 0;
+      }
+  
+      p {
+        margin: 5px 0;
+        font-weight: bold;
+      }
+    }
+  }
+  

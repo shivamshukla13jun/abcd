@@ -1,0 +1,178 @@
+// Colors
+$white: #ffffff;
+$gray-50: #f8f9fa;
+$gray-100: #f1f3f5;
+$gray-200: #e9ecef;
+$gray-500: #adb5bd;
+$gray-600: #6c757d;
+$primary: #1a237e;
+$primary-light: lighten($primary, 10%);
+$primary-dark: #0d1442;
+$secondary: #64748b;
+$danger: #dc3545;
+$danger-light: #fff5f5;
+$warning: #f59e0b;
+$success: #22c55e;
+$info: #0ea5e9;
+
+// Background Colors
+$background-color: #f8f9fa;
+$border-color: #ced4da;
+
+// Status Colors
+$status-pending-bg: rgba($warning, 0.1);
+$status-pending-text: $warning;
+$status-delivered-bg: rgba($success, 0.1);
+$status-delivered-text: $success;
+$status-cancelled-bg: rgba($danger, 0.1);
+$status-cancelled-text: $danger;
+$status-active-bg: rgba($success, 0.1);
+$status-active-text: $success;
+$status-in-transit-bg: rgba($info, 0.1);
+$status-in-transit-text: $info;
+$status-to-be-billed-bg: rgba($warning, 0.1);
+$status-to-be-billed-text: $warning;
+$status-dispatched-bg: rgba($primary, 0.1);
+$status-dispatched-text: $primary;
+
+// Load Status Colors
+$load-status-pending-bg: #fff3cd;
+$load-status-pending-text: #856404;
+$load-status-in-transit-bg: #cce5ff;
+$load-status-in-transit-text: #004085;
+$load-status-delivered-bg: #d4edda;
+$load-status-delivered-text: #155724;
+
+// Gray Scale
+$gray-100: #f1f5f9;
+$gray-200: #e2e8f0;
+$gray-300: #cbd5e1;
+$gray-400: #94a3b8;
+
+// Text Colors
+$text-primary: #1e293b;
+$text-secondary: #475569;
+$text-muted: #64748b;
+
+// Spacing
+$gap-xs: 0.5rem;
+$gap-sm: 0.75rem;
+$gap-md: 1rem;
+$gap-lg: 1.5rem;
+$gap-xl: 2rem;
+$container-padding: 1.5rem;
+
+// Border Radius
+$border-radius: 0.5rem;
+$border-radius-sm: 0.25rem;
+$border-radius-md: 0.375rem;
+$border-radius-lg: 0.75rem;
+$border-radius-full: 9999px;
+
+// Font Sizes
+$font-size-sm: 0.875rem;
+$font-size-base: 1rem;
+$font-size-lg: 1.125rem;
+$font-size-xl: 1.25rem;
+$font-size-2xl: 1.5rem;
+
+// Font Weights
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+// Shadows
+$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+// Alias for consistent naming with Bootstrap
+$box-shadow-sm: $shadow-sm;
+$box-shadow: $shadow-md;
+$box-shadow-lg: $shadow-lg;
+
+// Transitions
+$transition-base: all 0.2s ease;
+$transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+// Z-index
+$z-header: 1000;
+$z-sidebar: 1100;
+$z-dropdown: 1200;
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal: 1040;
+$z-index-popover: 1050;
+$z-index-tooltip: 1060;
+
+// Layout
+$header-height: 64px;
+$sidebar-width: 80px;
+$sidebar-width-expanded: 280px;
+
+// Breakpoints
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+$breakpoint-2xl: 1400px;
+$light: #ffffff;
+$dark: #000000;
+
+// Gradients
+$primary-gradient: linear-gradient(135deg, $primary, $primary-dark);
+$primary-light: linear-gradient(135deg, $primary, $primary-dark);
+$income-color: linear-gradient(135deg, $primary, $primary-dark);
+$down-color: linear-gradient(135deg, $danger, $primary-dark);
+$income-bg-color: linear-gradient(135deg, $success, $primary-dark);
+$down-bg-color: linear-gradient(135deg, $danger, $primary-dark);
+$background-color: linear-gradient(135deg, $primary, $primary-dark);
+$expense-bg-color: linear-gradient(135deg, $warning, $primary-dark);
+$expense-color: linear-gradient(135deg, $warning, $primary-dark);
+$balance-color: linear-gradient(135deg, $info, $primary-dark);
+$balance-bg-color: linear-gradient(135deg, $info, $primary-dark);
+$success-color: linear-gradient(135deg, $success, $primary-dark);
+$success-bg-color: linear-gradient(135deg, $success, $primary-dark);
+$error-color: linear-gradient(135deg, $danger, $primary-dark);
+$error-bg-color: linear-gradient(135deg, $danger, $primary-dark);
+$status-pending-color: linear-gradient(135deg, $warning, $primary-dark);
+$warning-color: linear-gradient(135deg, $warning, $primary-dark);
+$warning-bg-color: linear-gradient(135deg, $warning, $primary-dark);
+$primary-color: linear-gradient(135deg, $primary, $primary-dark);
+$primary-bg-color: linear-gradient(135deg, $primary, $primary-dark);
+$secondary-color: linear-gradient(135deg, $secondary, $primary-dark);
+$secondary-bg-color: linear-gradient(135deg, $secondary, $primary-dark);
+$success-color: linear-gradient(135deg, $success, $primary-dark);
+$success-bg-color: linear-gradient(135deg, $success, $primary-dark);
+$danger-color: linear-gradient(135deg, $danger, $primary-dark);
+$danger-bg-color: linear-gradient(135deg, $danger, $primary-dark);
+$warning-color: linear-gradient(135deg, $warning, $primary-dark);
+$warning-bg-color: linear-gradient(135deg, $warning, $primary-dark);
+$info-color: linear-gradient(135deg, $info, $primary-dark);
+$info-bg-color: linear-gradient(135deg, $info, $primary-dark);
+$light-color: linear-gradient(135deg, $light, $primary-dark);
+$light-bg-color: linear-gradient(135deg, $light, $primary-dark);
+$dark-color: linear-gradient(135deg, $dark, $primary-dark);
+$dark-bg-color: linear-gradient(135deg, $dark, $primary-dark);
+
+// Status Colors
+$status-pending: linear-gradient(135deg, $warning, $primary-dark);
+$status-overdue: linear-gradient(135deg, $danger, $primary-dark);
+$status-paid: linear-gradient(135deg, $success, $primary-dark);
+
+$status-pending-color: linear-gradient(135deg, $warning, $primary-dark);
+$status-pending-bg-color: linear-gradient(135deg, $warning, $primary-dark);
+$status-delivered-color: linear-gradient(135deg, $success, $primary-dark);
+$status-delivered-bg-color: linear-gradient(135deg, $success, $primary-dark);
+$status-cancelled-color: linear-gradient(135deg, $danger, $primary-dark);
+$status-cancelled-bg-color: linear-gradient(135deg, $danger, $primary-dark);
+$status-in-transit-color: linear-gradient(135deg, $info, $primary-dark);
+$status-in-transit-bg-color: linear-gradient(135deg, $info, $primary-dark);
+$status-to-be-billed-color: linear-gradient(135deg, $warning, $primary-dark);
+$status-to-be-billed-bg-color: linear-gradient(135deg, $warning, $primary-dark);
+$status-dispatched-color: linear-gradient(135deg, $primary, $primary-dark);
+$status-dispatched-bg-color: linear-gradient(135deg, $primary, $primary-dark);
+
+// Profile Size

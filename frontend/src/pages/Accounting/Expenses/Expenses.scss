@@ -1,0 +1,149 @@
+.expenses-page {
+  padding: 1rem;
+
+  .card {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+
+    .card-header {
+      background: #fff;
+      border-bottom: 1px solid #dee2e6;
+      padding: 1rem;
+
+      h2 {
+        margin: 0;
+        color: #343a40;
+        font-size: 1.5rem;
+      }
+    }
+  }
+
+  .status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+
+    &.pending {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+
+    &.approved {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    &.rejected {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    &.review {
+      background-color: #e2e3e5;
+      color: #383d41;
+    }
+  }
+
+  .nav-tabs {
+    border-bottom: 2px solid #dee2e6;
+    margin-bottom: 1rem;
+
+    .nav-link {
+      border: none;
+      color: #6c757d;
+      padding: 0.75rem 1rem;
+      margin-right: 1rem;
+      font-weight: 500;
+      position: relative;
+
+      &:hover {
+        border: none;
+        color: #007bff;
+      }
+
+      &.active {
+        color: #007bff;
+        background: none;
+        border: none;
+
+        &:after {
+          content: '';
+          position: absolute;
+          bottom: -2px;
+          left: 0;
+          right: 0;
+          height: 2px;
+          background: #007bff;
+        }
+      }
+    }
+  }
+
+  .table {
+    th {
+      background: #f8f9fa;
+      border-bottom: 2px solid #dee2e6;
+      color: #495057;
+      font-weight: 600;
+    }
+
+    td {
+      vertical-align: middle;
+    }
+  }
+
+  .upload-section, .todo-section {
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+
+    h4 {
+      color: #343a40;
+      margin-bottom: 1rem;
+    }
+  }
+
+  .btn {
+    &-sm {
+      padding: 0.25rem 0.75rem;
+    }
+
+    &-primary {
+      background-color: #007bff;
+      border-color: #007bff;
+
+      &:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+      }
+    }
+
+    &-danger {
+      background-color: #dc3545;
+      border-color: #dc3545;
+
+      &:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+      }
+    }
+  }
+
+  .expense-type {
+    font-weight: 500;
+    color: #495057;
+  }
+
+  .amount-cell {
+    font-family: monospace;
+    font-weight: 600;
+    color: #28a745;
+
+    &.high {
+      color: #dc3545;
+    }
+  }
+}

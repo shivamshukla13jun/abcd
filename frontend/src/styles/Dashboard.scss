@@ -1,0 +1,115 @@
+// .container {
+//     .card {
+//         border-radius: $border-radius-lg;
+//         box-shadow: $shadow-sm;
+//         background: $white;
+//         transition: $transition-base;
+//         border: 1px solid $gray-100;
+        
+//         &:hover {
+//             box-shadow: $shadow-md;
+//             transform: translateY(-2px);
+//         }
+        
+//         .card-body {
+//             padding: $container-padding;
+//         }
+        
+//         .card-title {
+//             color: $primary;
+//             font-weight: $font-weight-semibold;
+//             margin-bottom: 1rem;
+//         }
+        
+//         .card-text {
+//             color: $secondary;
+//             font-size: 0.9rem;
+//         }
+//     }
+// }
+
+// .income-highlight {
+//     color: $income-color;
+// }
+
+// .down-highlight {
+//     color: $down-color;
+// }
+
+// .font-heading-dashboard {
+//     font-size: $font-size-2xl;
+//     font-weight: $font-weight-semibold;
+// }
+
+// .bg-income-highlight {
+//     background-color: $income-bg-color !important;
+// }
+
+// .bg-expense-highlight {
+//     background-color: $expense-bg-color !important;
+// }
+
+// // Legend styling for both Payable and Receivable
+// .legend-item {
+//     display: flex;
+//     align-items: center;
+//     margin-bottom: $gap-sm;
+    
+//     .legend-color {
+//         width: 12px;
+//         height: 12px;
+//         border-radius: $border-radius-full;
+//         margin-right: $gap-sm;
+//     }
+    
+//     .legend-label {
+//         color: $text-secondary;
+//         font-size: $font-size-sm;
+//     }
+// }
+
+// .unpaid {
+//     color: $status-pending;
+//     font-weight: $font-weight-medium;
+// }
+
+// .overdue {
+//     color: $status-overdue;
+//     font-weight: $font-weight-medium;
+// }
+
+// .paid {
+//     color: $status-paid;
+//     font-weight: $font-weight-medium;
+// }
+
+// .go {
+//     color: $text-primary;
+//     font-weight: $font-weight-semibold;
+// }
+
+// .shortcut {
+//     a {
+//         display: flex;
+//         align-items: center;
+//         gap: $gap-md;
+//         padding: $gap-sm $gap-md;
+//         border-radius: $border-radius-md;
+//         transition: $transition-base;
+
+//         &:hover {
+//             background-color: $gray-100;
+//             text-decoration: none;
+//         }
+
+//         svg {
+//             font-size: $font-size-xl;
+//             color: $text-secondary;
+//         }
+//     }
+// }
+
+// .bullet-list {
+//     list-style-type: circle;
+//     margin-left: 1.5rem;
+// }
