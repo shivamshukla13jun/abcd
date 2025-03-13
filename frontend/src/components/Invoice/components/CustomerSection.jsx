@@ -42,7 +42,7 @@ const CustomerSection = ({ register, errors }) => {
             {...register('invoiceDate')}
             error={!!errors.invoiceDate}
             helperText={errors.invoiceDate?.message}
-          />
+          />  
         </Grid>
       </Grid>
     </Grid>
