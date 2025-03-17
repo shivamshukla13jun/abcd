@@ -15,8 +15,8 @@ export interface ICustomer extends Document {
   paymentTerms: mongoose.Types.ObjectId[];
   vatNumber: string;
   utrNumber: string;
-  status: string;
-  rating: string;
+  status?: string;
+  rating?: string;
   createdAt: Date;
   updatedAt: Date;
 }

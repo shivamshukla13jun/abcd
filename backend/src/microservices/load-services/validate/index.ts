@@ -66,46 +66,6 @@ const itemSchema = Yup.object().shape({
 });
 
 
-// Main document upload form schema
-const documentUploadSchema = Yup.object().shape({
-  files: Yup.array()
-    .of(Yup.object())
-    .max(10, 'Maximum 10 files allowed'),
-  
-  items: Yup.array()
-    .of(itemSchema)
-    .min(1, 'At least one item is required'),
-  
-  freightCharge: Yup.string()
-    .required('Freight charge terms are required')
-    .oneOf(['Prepaid', 'Collect', '3rd Party'], 'Invalid freight charge option'),
-  
-  // Adding financial fields
-  subTotal: Yup.number().transform((value, originalValue) => {
-      // Convert empty strings or invalid numbers to `null`
-      return isNaN(value) || originalValue === '' ? null : value;
-    })
-    .min(0, 'Sub-total cannot be negative'),
-  
-  total: Yup.number().transform((value, originalValue) => {
-      // Convert empty strings or invalid numbers to `null`
-      return isNaN(value) || originalValue === '' ? null : value;
-    })
-    .min(0, 'Total cannot be negative'),
-  
-  deposit: Yup.number().transform((value, originalValue) => {
-      // Convert empty strings or invalid numbers to `null`
-      return isNaN(value) || originalValue === '' ? null : value;
-    })
-    .min(0, 'Deposit cannot be negative'),
-  
-  balanceDue: Yup.number().transform((value, originalValue) => {
-      // Convert empty strings or invalid numbers to `null`
-      return isNaN(value) || originalValue === '' ? null : value;
-    })
-    .min(0, 'Balance due cannot be negative'),
-});
-
 // Load Schema
 const LoadSchema = Yup.object().shape({
   loadNumber: Yup.string().required('Load number is required'),
@@ -229,12 +189,12 @@ const DeliveryLocationSchema = Yup.array().of(
   email: Yup.string().email('Must be a valid email address').required('Email is required'),
   phone: Yup.string().required('Phone number is required'),
   paymentMethod: Yup.string().required('Payment method is required'),
-  paymentTerms: Yup.string().required('Payment term is required'),
+  paymentTerms: Yup.array().of(Yup.string()).required('Payment term is required'),
   // creditLimit: Yup.number().required('Credit limit is required'),
   vatNumber: Yup.string().nullable(),
   utrNumber: Yup.string().nullable(),
-  status: Yup.string().required('Status is required'),
-  rating: Yup.string().required('Rating is required'),
+  status: Yup.string(),
+  rating: Yup.string(),
   city: Yup.string().required('City is required'),  
   state: Yup.string().required('State is required'),
   zipCode: Yup.string().required('Zipcode is required'),

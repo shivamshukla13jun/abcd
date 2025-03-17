@@ -22,7 +22,8 @@ import './AddCustomer.scss';
 import { toast } from 'react-toastify';
 
 const schema = yup.object().shape({
-  customerName: yup.string().required('Company name is required'),
+  company: yup.string().required('Company name is required'),
+  customerName: yup.string().required('Customer name is required'),
   email: yup.string().email('Invalid email').required('Email is required'),
   phone: yup.string().required('Phone is required'),
   address: yup.string().required('Address is required'),
@@ -44,7 +45,8 @@ const PAYMENT_METHODS = [
   { value: 'check', label: 'Check' }
 ];
 
-const AddCustomer = ({ open, onClose, onSuccess }) => {
+const AddCustomer = ({ open, onClose, onSuccess, initialData }) => {
+  console.log("initialData", initialData)
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentTerms, setPaymentTerms] = useState([]);
 
@@ -53,22 +55,25 @@ const AddCustomer = ({ open, onClose, onSuccess }) => {
     handleSubmit,
     formState: { errors },
     reset,
+    watch
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
-      customerName: '',
-      email: '',
-      phone: '',
-      address: '',
-      city: '',
-      state: '',
-      zipCode: '',
-      mcNumber: '',
-      usdot: '',
-      paymentMethod: '',
-      paymentTerms: [],
-      vatNumber: '',
-      utrNumber: '',
+      customerName: initialData?.customerName || '',
+      company: initialData?.company || '',
+      email: initialData?.email || '',
+      phone: initialData?.phone || '',
+      address: initialData?.address || '',
+      city: initialData?.city || '',
+      state: initialData?.state || '',
+      zipCode: initialData?.zipCode || '',
+      mcNumber: initialData?.mcNumber || '',
+      usdot: initialData?.usdot || '',
+      paymentMethod: initialData?.paymentMethod || '',
+      paymentTerms: Array.isArray(initialData?.paymentTerms) ? initialData.paymentTerms : [],
+      vatNumber: initialData?.vatNumber || '',
+      utrNumber: initialData?.utrNumber || '',
+      _id: initialData?._id || undefined,
     }
   });
 
@@ -85,11 +90,19 @@ const AddCustomer = ({ open, onClose, onSuccess }) => {
 
     fetchPaymentTerms();
   }, []);
-
+  useEffect(() => {
+    if (initialData) {
+      reset(initialData);
+    }
+  }, [initialData]);
   const onSubmit = async (data) => {
     try {
       setIsSubmitting(true);
-      await apiService.createCustomer(data);
+      if (initialData._id) {
+        await apiService.updateCustomer(initialData._id, data);
+      } else {
+        await apiService.createCustomer(data);
+      }
       onSuccess();
       onClose();
       reset();
@@ -108,7 +121,7 @@ const AddCustomer = ({ open, onClose, onSuccess }) => {
       <DialogContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
+            <Grid item xs={6}>
               <Controller
                 name="customerName"
                 control={control}
@@ -116,14 +129,28 @@ const AddCustomer = ({ open, onClose, onSuccess }) => {
                   <TextField
                     {...field}
                     fullWidth
-                    label="Company Name"
+                    label="Customer Name"
                     error={!!errors.customerName}
                     helperText={errors.customerName?.message}
                   />
                 )}
               />
             </Grid>
-
+            <Grid item xs={6}>
+              <Controller
+                name="company"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    fullWidth
+                    label="Company Name"
+                    error={!!errors.company}
+                    helperText={errors.company?.message}
+                  />
+                )}
+              />
+            </Grid>
             <Grid item xs={6}>
               <Controller
                 name="email"
@@ -280,25 +307,15 @@ const AddCustomer = ({ open, onClose, onSuccess }) => {
                 <Controller
                   name="paymentTerms"
                   control={control}
-                  render={({ field }) => (
-                    <Select
+                  defaultValue={[]}
+                  render={({ field: { value, ...field } }) => {
+                    console.log("value", value) // {_id,name,days} i get single value now add as a rray 
+                    return <Select
                       {...field}
+                      value={Array.isArray(value) ? value : []}
                       multiple
                       label="Payment Terms"
-                      renderValue={(selected) => (
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                          {selected.map((value) => {
-                            const term = paymentTerms.find(t => t._id === value);
-                            return (
-                              <Chip
-                                key={value}
-                                label={`${term?.name} (${term?.days} days)`}
-                                size="small"
-                              />
-                            );
-                          })}
-                        </div>
-                      )}
+                      
                     >
                       {paymentTerms.map((term) => (
                         <MenuItem key={term._id} value={term._id}>
@@ -306,7 +323,7 @@ const AddCustomer = ({ open, onClose, onSuccess }) => {
                         </MenuItem>
                       ))}
                     </Select>
-                  )}
+                  }}
                 />
                 {errors.paymentTerms && (
                   <FormHelperText>{errors.paymentTerms.message}</FormHelperText>

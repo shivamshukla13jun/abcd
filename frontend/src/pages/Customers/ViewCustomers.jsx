@@ -45,7 +45,7 @@ const ViewCustomers = () => {
 
   const handleEditClick = (customer) => {
     setSelectedCustomer(customer);
-    setShowEditModal(true);
+    setShowAddModal(true);
   };
 
   const handleDeleteClick = async (customerId) => {
@@ -190,19 +190,14 @@ const ViewCustomers = () => {
 
       <AddCustomer
         open={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onSuccess={handleAddSuccess}
-      />
-
-      <EditCustomer
-        show={showEditModal}
-        onHide={() => {
-          setShowEditModal(false);
+        onClose={() => {
+          setShowAddModal(false);
           setSelectedCustomer(null);
         }}
-        onSuccess={handleEditSuccess}
-        customer={selectedCustomer}
+        onSuccess={handleAddSuccess}
+        initialData={selectedCustomer}
       />
+
     </div>
   );
 };

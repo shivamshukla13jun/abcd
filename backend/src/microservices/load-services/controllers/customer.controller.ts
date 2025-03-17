@@ -66,7 +66,7 @@ const getAllCustomers = async (req: Request, res: Response, next: NextFunction):
           pipeline: [
             {
               $project: {
-                _id: 0,
+                _id: 1,
                 name: 1,
                 days: 1
               }

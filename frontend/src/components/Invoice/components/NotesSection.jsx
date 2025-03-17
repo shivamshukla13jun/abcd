@@ -8,13 +8,13 @@ const NotesSection = ({ register, errors }) => {
         <Grid item md={12}>
           <TextField
             fullWidth
-            label="Message on Invoice"
+            label="Customer Notes"
             multiline
-            rows={3}
+            rows={8}
             {...register('customerNotes')}
             error={!!errors.customerNotes}
             helperText={errors.customerNotes?.message}
-            placeholder="Thank you for your business!"
+            placeholder="Enter Customer Notes"
           />
         </Grid>
         <Grid item md={12}>
@@ -22,11 +22,11 @@ const NotesSection = ({ register, errors }) => {
             fullWidth
             label="Terms and Conditions"
             multiline
-            rows={3}
+            rows={6.5}
             {...register('terms_conditions')}
             error={!!errors.terms_conditions}
             helperText={errors.terms_conditions?.message}
-            placeholder="Statement message..."
+            placeholder="Enter Terms and Conditions"
           />
         </Grid>
       </Grid>
