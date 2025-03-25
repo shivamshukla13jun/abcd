@@ -42,13 +42,12 @@ const CreateLoad = () => {
         asset: carrierIds,
         pickup: pickupLocations,
         delivery: deliveryLocations,
-        document: {
           files: files,
           items: items,
           freightCharge: freightCharge
-        }
+        
     };
-    await validateLoadSchema(tabname, validateData[tabname]);
+    return await validateLoadSchema(tabname, validateData[tabname]);
 };
 const saveCarrier = async () => {
   try {
@@ -134,6 +133,7 @@ const saveCarrier = async () => {
             dispatch(setActiveTab(tabs[currentIndex + 1]));
         }
     } catch (error) {
+
         toast.error(error.message);
         setError(error.message);
     }
@@ -209,28 +209,26 @@ const saveCarrier = async () => {
         console.error('Error submitting load:', err);
     } 
 };
-
 const handleTabChange = async (nextTab) => {
   try {
-      setError(null);
-      // check bnexttab is validate then go there
-      // const validateNextTab=  await validateTabData(nextTab); // Validate current tab data before switching
-      //  if(validateNextTab){
-      //   dispatch(setActiveTab(nextTab));
-      //   return 
-      //  }
-      
-      const currentIndex = tabs.indexOf(activeTab);
-      const tabname = tabs[currentIndex];
-      
-      await validateTabData(tabname); // Validate current tab data before switching
+    setError(null);
 
-      dispatch(setActiveTab(nextTab));
+    // Validate next tab before switching
+    // const isNextTabValid = await validateTabData(nextTab);
+    //  console.log("isNextTabValid",isNextTabValid)
+    // if (isNextTabValid) {
+    //   dispatch(setActiveTab(nextTab));
+    // } else {
+    //   toast.error("Next tab has validation errors.");
+    // }
+    dispatch(setActiveTab(nextTab));
+
   } catch (error) {
-      toast.error(error.message);
-      setError(error.message);
+    toast.error(error.message);
+    setError(error.message);
   }
 };
+
 console.log("loadData",loadData)
   return (
     <div className="container-fluid">

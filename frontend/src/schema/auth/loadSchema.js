@@ -236,25 +236,39 @@ const CarrierSchema = Yup.array().of(
     })
   )
 const tabsSchema={
-  "load":LoadSchema, "customer":CustomerSchema, "asset":CarrierSchema, "pickup":PickupLocationSchema,
+    "load":LoadSchema, "customer":CustomerSchema, "asset":CarrierSchema, "pickup":PickupLocationSchema,
    "delivery":DeliveryLocationSchema,
    "document":documentUploadSchema
 }
 const validateLoadSchema = async (tab, formData) => {
-  return new Promise((resolve, reject) => {
-    tabsSchema[tab].validate(formData, { abortEarly: false })
-      .then(() => resolve(true))
-      .catch((err) => {
-        if (err.inner && err.inner.length > 0) {
-          // Get the first validation error message
-          const firstError = err.inner[0];
-          //console.log("First Validation Error:", firstError);
-          reject(firstError);
-        } else {
-          reject("Validation failed");
-        }
-      });
-  });
+  try {
+    // Validate the form data using Yup schema for the specific tab
+    await tabsSchema[tab].validate(formData, { abortEarly: false });
+    return { isValid: true, error: null }; // No errors, return valid
+  } catch (error) {
+    if (error.inner && error.inner.length > 0) {
+      // Get the first error message
+      const firstError = error.inner[0].message;
+      let tabname = tab;
+      if(tabname === 'document'){
+        tabname = 'Document Upload';
+      }else if(tabname === 'pickup'){
+        tabname = 'Pickup';
+      }else if(tabname === 'delivery'){
+        tabname = 'Delivery';
+      }else if(tabname === 'customer'){
+        tabname = 'Customer';
+      }else if(tabname === 'asset'){
+        tabname = 'Carrier';
+      }else if(tabname === 'load'){
+        tabname = 'load';
+      }
+      let message= tabname=="load"?"":`${tabname}: `;
+
+      throw new Error(`${message}${firstError}`);
+    }
+  }
 };
+
 
 export { LoadSchema,PickupLocationSchema,DeliveryLocationSchema,validateLoadSchema, DriverSchema, CustomerSchema, CarrierSchema,documentUploadSchema, tabsSchema };

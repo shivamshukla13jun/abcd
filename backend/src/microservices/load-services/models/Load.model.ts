@@ -86,6 +86,26 @@ export interface ILoad extends Document {
 
 const LoadSchema: Schema = new Schema({
   loadNumber: { type: String, required: true, unique: true },
+  customerExpense: { 
+    rate: { type: Number, required: true },
+    lumperatshipper: { type: Number, required: true },
+    layover: { type: Number, required: true },
+    detention: { type: Number, required: true },
+    extramiles: { type: Number, required: true },
+    misc: { type: Number, required: true },
+    lumperatreciever: { type: Number, required: true },
+    customer: { type: mongoose.Types.ObjectId, ref: 'Customer', required: true },
+   },
+   carrierExpense:[{ 
+    rate: { type: Number, required: true },
+    lumperatshipper: { type: Number, required: true },
+    layover: { type: Number, required: true },
+    detention: { type: Number, required: true },
+    extramiles: { type: Number, required: true },
+    misc: { type: Number, required: true },
+    lumperatreciever: { type: Number, required: true },
+    carrier: { type: mongoose.Types.ObjectId, ref: 'Carrier', required: true },
+   }],
   status: { type: String, enum: Object.values(LoadStatus), default: LoadStatus.PENDING },
   commodity: { type: String, required: true },
   loadSize: { type: String, enum: Object.values(LoadSize), required: true },

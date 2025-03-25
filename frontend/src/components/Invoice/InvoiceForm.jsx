@@ -1,35 +1,19 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import {
-  TextField,
   Button,
   Grid,
   Paper,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  IconButton,
-  Select,
-  MenuItem,
-  Chip,
   Box,
-  Divider
 } from '@mui/material';
-import { Delete, Add, Print, Save, Send } from '@mui/icons-material';
+import {  Send } from '@mui/icons-material';
 import apiService from '@/service/apiService';
 import './InvoiceForm.scss';
 import { initialinvoiceData } from '@/redux/InitialData/invoice';
 import useDebounce from '@/hooks/useDebounce';
 import { toast } from 'react-toastify';
-import CustomDatePicker from '@/components/common/CommonDatePicker';
-import { useDropzone } from 'react-dropzone';
-import { TAX_OPTIONS } from './constants';
 import ItemsTable from './components/ItemsTable';
 import TotalsSection from './components/TotalsSection';
 import AttachmentsSection from './components/AttachmentsSection';
@@ -37,13 +21,10 @@ import HeaderSection from './components/HeaderSection';
 import CustomerSection from './components/CustomerSection';
 import NotesSection from './components/NotesSection';
 import { generateInvoiceSchema } from '@/schema/auth/invoiceSchema';
-import { format, formatDate } from 'date-fns';
 import LoadingSpinner from '@components/common/LoadingSpinner/LoadingSpinner';
 const InvoiceForm = ({ onSubmit ,initialData}) => {
-  console.log("initialData",initialData)
-  const [searchTerm, setSearchTerm] = useState(initialData?.loadNumber || '');
+  const [searchTerm] = useState(initialData?.loadNumber || '');
   const [attachments, setAttachments] = useState([]);
-  const [tags, setTags] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadDetails, setLoadDetails] = useState(null);
   const debouncedSearchTerm = useDebounce(searchTerm, 800);
@@ -128,7 +109,6 @@ useEffect(() => {
           Object.entries(updatedFields).forEach(([key, value]) => {
             setValue(key, value);
           });
-          // toast.success('Load details loaded successfully');
         }
       } catch (error) {
         toast.error("No load found with this number");
@@ -141,8 +121,6 @@ useEffect(() => {
     fetchLoadDetails();
   }, [debouncedSearchTerm, ]);
 
-console.log("deletedfiles", watch('deletedfiles'));
- 
   const handleFormSubmit = async (data) => {
     try {
       const formData = new FormData();
@@ -168,14 +146,6 @@ console.log("deletedfiles", watch('deletedfiles'));
       console.log("error", error);
       toast.error(error.message);
     }
-  };
-  
-
-  const handleFormReset = () => {
-    reset(initialinvoiceData);
-    setAttachments([]);
-    setTags([]);
-    setSearchTerm('');
   };
 
   return (

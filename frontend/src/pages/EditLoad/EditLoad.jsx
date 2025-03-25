@@ -68,17 +68,19 @@ const EditLoad = () => {
   const handleTabChange = async (nextTab) => {
     try {
       setError(null);
-      const validateNextTab=  await validateTabData(nextTab); // Validate current tab data before switching
-       if(validateNextTab){
-        dispatch(setActiveTab(nextTab));
-        return 
-       }
       const currentIndex = tabs.indexOf(activeTab);
       const tabname = tabs[currentIndex];
-
-      await validateTabData(tabname); // Validate current tab data before switching
-
+      // Validate next tab before switching
+      // try {
+      //   // await validateTabData(nextTab); // Validate current tab data
+      // } catch (error) {
+      //   toast.error(error.message);
+      //   setError(error.message);
+      //   return;
+      // }
+      
       dispatch(setActiveTab(nextTab));
+  
     } catch (error) {
       toast.error(error.message);
       setError(error.message);
