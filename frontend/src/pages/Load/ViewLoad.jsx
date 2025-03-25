@@ -5,12 +5,25 @@ import { useNavigate } from 'react-router-dom';
 import apiService from "@service/apiService";
 import { toast } from "react-toastify";
 import { formatDate } from '@utils/formatDate';
+import { Modal, Box, Typography } from '@mui/material';
+import InvoiceForm from '@/components/Invoice/InvoiceForm';
 import { FaPencilAlt } from 'react-icons/fa';
 import { useDispatch } from 'react-redux';
-import { resetLoad as resetnewLoad } from '@redux/Slice/loadSlice';
 import { resetLoad } from '@redux/Slice/EditloadSlice';
-import './ViewLoad.scss';
 
+import './ViewLoad.scss';
+const modalStyle = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: '90%',
+  maxHeight: '90vh',
+  bgcolor: 'background.paper',
+  boxShadow: 24,
+  p: 4,
+  overflow: 'auto'
+};
 const LOAD_STATUSES = [
   { key: 'allLoad', label: 'All Loads' },
   { key: 'Pending', label: 'Pending' },
@@ -22,6 +35,10 @@ const LOAD_STATUSES = [
 
 const ViewLoad = () => {
   const [activeTab, setActiveTab] = useState('allLoad');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState(null);
   const [loads, setLoads] = useState([]);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -72,7 +89,34 @@ const ViewLoad = () => {
     // dispatch(resetnewLoad());
     navigate("/createload");
   };
+  const handleCreateInvoice = async (data) => {
+    try {
+      await apiService.generateInvoice(data);
+      toast.success('Invoice created successfully');
+      setShowInvoiceModal(false);
+    } catch (error) {
+      toast.error('Failed to create invoice');
+      toast.error(error.message);
+    }
+  };
 
+  const handleEditInvoice = async (data) => {
+    try {
+      console.log("data ???",data)
+      await apiService.updateInvoice(editingInvoice._id, data);
+      toast.success('Invoice updated successfully');
+      setShowInvoiceModal(false);
+    } catch (error) {
+      console.log("error",error)
+      // toast.error('Failed to update invoice');
+      toast.error(error.message);
+    }
+  };
+  const handleCloseModal = () => {
+    setShowInvoiceModal(false);
+    setEditingInvoice(null);
+  };
+  
   const LoadTable = ({ data }) => (
     <div className="view-load__table-wrapper">
       <Table>
@@ -80,6 +124,7 @@ const ViewLoad = () => {
           <tr>
             <th>Load No</th>
             <th>Status</th>
+            <th>Invoice</th>
             <th>Customer</th>
             <th>Picks</th>
             <th>Pick Date</th>
@@ -103,6 +148,32 @@ const ViewLoad = () => {
                   <span className={getStatusClass(load?.status)}>
                     {load?.status}
                   </span>
+                </td>
+                <td>
+                  {load.invoice ? (
+                    <Button
+                      variant="link"
+                      className="view-load__action-btn"
+                      onClick={() =>{
+                        setEditingInvoice({...load.invoice,loadNumber:load.loadNumber});
+                        setShowInvoiceModal(true);
+                      }}
+                    >
+                      Edit Invoice
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="link"
+                      className="view-load__action-btn"
+                      onClick={() =>{
+                        setEditingInvoice({ loadNumber:load.loadNumber,invoiceNumber:load.loadNumber});
+                        setShowInvoiceModal(true);
+                        
+                      }}
+                    >
+                      Create Invoice
+                    </Button>
+                  )}
                 </td>
                 <td>{load.customerId?.customerName || "-"}</td>
                 <td>
@@ -207,6 +278,7 @@ const ViewLoad = () => {
                   >
                     <FaPencilAlt />
                   </Button>
+                 
                 </td>
               </tr>
             ))
@@ -223,6 +295,8 @@ const ViewLoad = () => {
   );
 
   return (
+    <>
+    
     <div className="view-load">
       <Container fluid className="view-load__container">
         <div className="view-load__header">
@@ -244,6 +318,24 @@ const ViewLoad = () => {
         <LoadTable data={loads} />
       </Container>
     </div>
+    
+    <Modal 
+        open={showInvoiceModal}
+        onClose={handleCloseModal}
+      >
+        <Box sx={modalStyle}>
+          <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
+            {editingInvoice ? 'Edit Invoice' : 'Create New Invoice'}
+          </Typography>
+          <InvoiceForm
+            onSubmit={editingInvoice ? handleEditInvoice : handleCreateInvoice}
+            initialData={editingInvoice}
+            // label={editingInvoice ? 'Edit Invoice' : 'Create New Invoice'}
+
+          />
+        </Box>
+      </Modal>
+    </>
   );
 };
 

@@ -99,14 +99,180 @@ const getAllLoads = async (req: Request, res: Response, next: NextFunction): Pro
       matchStage['status'] = status;
     }
 
-    const loads = await Load.find(matchStage)
-      .populate('userId')
-      .populate('customerId')
-      .populate('carrierIds')
-      .populate('pickupLocationId')
-      .populate('deliveryLocationId')
-      .skip((Number(page) - 1) * Number(limit))
-      .limit(Number(limit));
+    const loads = await Load.aggregate([
+      { $match: matchStage },
+      {
+        $lookup: {
+          from: 'customers',
+          localField: 'customerId',
+          foreignField: '_id',
+          as: 'customerId'
+        }
+      },
+      {
+        $lookup: {
+          from: 'carriers',
+          localField: 'carrierIds',
+          foreignField: '_id',
+          as: 'carrierIds'
+        }
+      },
+      {
+        $lookup: {
+          from: 'locations',
+          localField: 'pickupLocationId',
+          foreignField: '_id',
+          as: 'pickupLocationId'
+        }
+      },
+      {
+        $lookup: {
+          from: 'locations',
+          localField: 'deliveryLocationId',
+          foreignField: '_id',
+          as: 'deliveryLocationId'
+        }
+      },
+      {
+        $lookup: {
+          from: 'invoices',
+          localField: 'invoiceId',
+          pipeline:[
+            {
+              $lookup: {
+                from: 'loads',
+                localField: 'loadId',
+                foreignField: '_id',
+                pipeline: [
+                  {
+                    $lookup: {
+                      from: 'customers',
+                      localField: 'customerId',
+                      foreignField: '_id',
+                      as: 'customer'
+                    }
+                  },
+                  {
+                    $unwind: {
+                      path: '$customer',
+                      preserveNullAndEmptyArrays: true
+                    }
+                  }
+                ],
+                as: 'load'
+              }
+            },
+            {
+              $unwind: {
+                path: '$load',
+                preserveNullAndEmptyArrays: true
+              }
+            },
+            {
+              $addFields: {
+                // Calculate subTotal from items array
+                subTotal: { $sum: "$items.amount" },
+                // Get customer details from load
+                customerName: '$load.customer.customerName',
+                customerEmail: '$load.customer.email',
+                customerAddress: '$load.customer.address',
+                customerId: '$load.customer._id',
+                // Calculate financial figures
+                totalDiscount: { 
+                  $multiply: [
+                    { $sum: "$items.amount" }, 
+                    { $divide: ['$discountPercent', 100] }
+                  ] 
+                }
+              }
+            },
+            {
+              $addFields: {
+                // Calculate final amounts
+                totalAmount: { $subtract: ['$subTotal', '$totalDiscount'] },
+                balanceDue: { 
+                  $subtract: [
+                    { $subtract: ['$subTotal', '$totalDiscount'] }, 
+                    '$deposit'
+                  ] 
+                }
+              }
+            },
+            {
+              $project: {
+                // Include all fields that the form needs
+                _id: 1,
+                invoiceNumber: 1,
+                // invoiceDate: 1,
+                // convert date related docs to DD/YYYY/MM format
+                invoiceDate: { $dateToString: { format: '%m/%d/%Y', date: '$invoiceDate' } },
+                dueDate: { $dateToString: { format: '%m/%d/%Y', date: '$dueDate' } },
+                location: 1,
+                terms: 1,
+                customerName: 1,
+                customerEmail: 1,
+                customerAddress: 1,
+                paymentOptions: 1,
+                customerId: 1,
+                loadId: 1,
+                loadNumber: '$invoiceNumber',
+                items: '$load.items',
+                customerNotes: 1,
+                terms_conditions: 1,
+                discountPercent: 1,
+                deposit: 1,
+                subTotal: 1,
+                totalDiscount: 1,
+                totalAmount: 1,
+                balanceDue: 1,
+                status: 1,
+                freightCharge: 1,
+              }
+            }
+          ],
+          foreignField: '_id',
+          as: 'invoice'
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'userId'
+        }
+      },
+      {
+        $unwind: {
+          path: '$customerId',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      
+     
+      {
+        $unwind: {
+          path: '$invoice',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $unwind: {
+          path: '$userId',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+     
+      {
+        $sort: { loadNumber: 1 }
+      },
+      {
+        $skip: (Number(page) - 1) * Number(limit)
+      },
+      {
+        $limit: Number(limit)
+      }
+    ]);
 
     const totalItems = await Load.countDocuments(matchStage);
 
@@ -187,50 +353,7 @@ const parseLoadData = (req: Request, userId:any) => {
   return loadData;
 };
 
-export const handleFileUpdates = async (existingLoad: any, req: Request, loadData: any) => {
-  if (req.files?.length) {
-    const files = req.files as Express.Multer.File[];
-    const existingFiles = existingLoad?.files || [];
 
-    const removedFiles = existingFiles.filter(
-      (existingFile: any) => !loadData?.files?.some(
-        (newFile: any) => newFile.name === existingFile.name
-      )
-    );
-
-    if (removedFiles.length > 0) {
-      await FileService.deleteFiles(removedFiles.map((file: any) => file.filename));
-    }
-
-   let documentUpload= loadData.files = [...(loadData.files || []), ...files]
-    return documentUpload
-  }
-  return loadData
-};
-
-const updateRelatedDocuments = async (loadData: any, loadId: string, session: mongoose.ClientSession) => {
-  if (loadData.carrierIds?.length) {
-    await Carrier.updateMany(
-      { _id: { $in: loadData.carrierIds } },
-      { $addToSet: { loads: loadId } },
-      { session }
-    );
-  }
-  if (loadData.pickupLocationId?.length) {
-    await Location.updateMany(
-      { _id: { $in: loadData.pickupLocationId } },
-      { $addToSet: { loads: loadId }, type: 'pickup' },
-      { session }
-    );
-  }
-  if (loadData.deliveryLocationId?.length) {
-    await Location.updateMany(
-      { _id: { $in: loadData.deliveryLocationId } },
-      { $addToSet: { loads: loadId }, type: 'delivery' },
-      { session }
-    );
-  }
-};
 /**
  * @description Update a load by ID with transaction
  * @type PUT

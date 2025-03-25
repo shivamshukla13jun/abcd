@@ -4,13 +4,12 @@ import { useDispatch } from "react-redux";
 import CustomDatePicker from "@components/common/CommonDatePicker";
 import { CityDatabase, States } from "@data/cityDatabase";
 import { locationClasses, locationRequirement } from "@data/Loads";
-import { IoIosAdd, IoIosTrash } from "react-icons/io";
+import {  IoIosTrash } from "react-icons/io";
 import { updateDeliveryLocation } from "@redux/Slice/loadSlice";
 
 const DeliveryLocation = ({ index, pickup, onRemove,initialDeliveryLocation,locations }) => {
   const dispatch = useDispatch();
   const [cities, setCities] = useState([]);
-  const [zipcodes, setZipcodes] = useState([]);
   useEffect(() => {
     if(pickup?.state){
       let cities=CityDatabase.filter((item)=>item.state==pickup?.state)
@@ -19,6 +18,8 @@ const DeliveryLocation = ({ index, pickup, onRemove,initialDeliveryLocation,loca
       setCities([])
     }
   },[pickup?.state])
+
+
   const handleLocationUpdate = async (e,index) => {
   
     try {
@@ -47,7 +48,10 @@ const DeliveryLocation = ({ index, pickup, onRemove,initialDeliveryLocation,loca
 
     const updatedDeliveryInfo = { ...pickup, [name]: value };
     dispatch(updateDeliveryLocation({index,...updatedDeliveryInfo}))
-     
+     if(name=="state"){
+         let cities=CityDatabase.filter((item)=>item.state==value)
+         setCities(cities)
+        }
   };
 
 
@@ -85,7 +89,7 @@ const DeliveryLocation = ({ index, pickup, onRemove,initialDeliveryLocation,loca
         <div className="col-sm-12">
           <select
             className="form-control"
-            name="_id"
+            name="id"
             value={pickup._id || ""}
             onChange={(event)=>handleLocationUpdate(event,index)}
           >
@@ -101,9 +105,7 @@ const DeliveryLocation = ({ index, pickup, onRemove,initialDeliveryLocation,loca
               </option>
             ))}
           </select>
-          <p onClick={()=>  dispatch(updateDeliveryLocation({index,...initialDeliveryLocation}))} className="create-link">
-            <IoIosAdd /> Click here to create a new Delivery location.
-          </p>
+         
         </div>
       </div>
       <div className="form-group row mt-2">

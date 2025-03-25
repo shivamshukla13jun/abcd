@@ -6,7 +6,8 @@ import AddCustomer from '@/components/Customers/AddCustomer';
 
 const CustomerInformation = () => {
   const dispatch = useDispatch();
-  const { customerInformation, } = useSelector((state) => state.editLoad);
+  const { customerInformation={} } = useSelector((state) => state.editload || {});
+  console.log("customerInformation",customerInformation)
   const [customers,setCustomers]=useState([])
   const [showCustomerForm, setShowCustomerForm] = useState(false);
   // Get All Customers

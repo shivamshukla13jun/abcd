@@ -109,9 +109,7 @@ const PickupLocation = ({ index, pickup, onRemove,initialPickupLocation,location
               </option>
             ))}
           </select>
-          <p onClick={()=>  dispatch(updatePickupLocation({index,...initialPickupLocation}))} className="create-link">
-            <IoIosAdd /> Click here to create a new Pickup location.
-          </p>
+        
         </div>
       </div>
       <div className="form-group row mt-2">

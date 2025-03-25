@@ -40,7 +40,6 @@ const Invoices = () => {
   const [error, setError] = useState(null);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState(null);
-  const [activeTab, setActiveTab] = useState('list');
 
   // Fetch invoices
   const fetchInvoicesData = async () => {
@@ -118,15 +117,15 @@ const Invoices = () => {
       <Card>
         <CardHeader
           title="Invoice Management"
-          action={
-            <Button 
-              variant="contained" 
-              color="primary" 
-              onClick={() => setShowInvoiceModal(true)}
-            >
-              Create New Invoice
-            </Button>
-          }
+          // action={
+          //   <Button 
+          //     variant="contained" 
+          //     color="primary" 
+          //     onClick={() => setShowInvoiceModal(true)}
+          //   >
+          //     Create New Invoice
+          //   </Button>
+          // }
         />
         <CardContent>
           <TableContainer component={Paper}>

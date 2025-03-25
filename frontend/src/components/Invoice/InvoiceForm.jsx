@@ -38,11 +38,13 @@ import CustomerSection from './components/CustomerSection';
 import NotesSection from './components/NotesSection';
 import { generateInvoiceSchema } from '@/schema/auth/invoiceSchema';
 import { format, formatDate } from 'date-fns';
+import LoadingSpinner from '@components/common/LoadingSpinner/LoadingSpinner';
 const InvoiceForm = ({ onSubmit ,initialData}) => {
   console.log("initialData",initialData)
   const [searchTerm, setSearchTerm] = useState(initialData?.loadNumber || '');
   const [attachments, setAttachments] = useState([]);
   const [tags, setTags] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [loadDetails, setLoadDetails] = useState(null);
   const debouncedSearchTerm = useDebounce(searchTerm, 800);
 
@@ -109,6 +111,7 @@ useEffect(() => {
       if (!debouncedSearchTerm) return;
 
       try {
+        setLoading(true);
         const response = await apiService.getLoadByloadNumber(debouncedSearchTerm);
         if (response?.data) {
           const loadData = response.data;
@@ -118,17 +121,21 @@ useEffect(() => {
             invoiceNumber: loadData.loadNumber,
             location: loadData?.deliveryLocationId?.[0]?.address,
             items: loadData?.items,
+            customerId: loadData?.customerId?._id,
           };
           setAttachments(loadData?.files || []);
 
           Object.entries(updatedFields).forEach(([key, value]) => {
             setValue(key, value);
           });
-          toast.success('Load details loaded successfully');
+          // toast.success('Load details loaded successfully');
         }
       } catch (error) {
         toast.error("No load found with this number");
+        setLoading(false);
         reset(initialinvoiceData);
+      } finally {
+        setLoading(false);
       }
     };
     fetchLoadDetails();
@@ -178,19 +185,17 @@ console.log("deletedfiles", watch('deletedfiles'));
       </Typography> */}
 
       <form onSubmit={handleSubmit(handleFormSubmit)}>
-        <Grid container spacing={3}>
+         {loading ? <LoadingSpinner/>:<Grid container spacing={3}>
           {/* Header Section */}
            {/* Customer Details */}
            
             <Grid item xs={6}>
           <HeaderSection 
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
             register={register}
-            balanceDue={totals.balanceDue}
             errors={errors}
             setValue={setValue}
             watch={watch}
+            customerId={loadDetails?.customerId?._id}
           />
           </Grid>
           <Grid item xs={6}>
@@ -265,7 +270,8 @@ console.log("deletedfiles", watch('deletedfiles'));
               </Box>
             </Box>
           </Grid>
-        </Grid>
+        </Grid>}
+        
       </form>
     </Paper>
   );

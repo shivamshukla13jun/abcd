@@ -12,7 +12,7 @@ import Asset from "./Asset";
 
 const Carier = () => {
   const dispatch = useDispatch();
-  const { assetInfo } = useSelector((state) => state.editload);
+  const { carrierIds } = useSelector((state) => state.editload);
   const [locations, setLocations] = useState([]);
   const initialCarierLocation ={
     mcNumber: "",
@@ -54,19 +54,19 @@ const UpdateCarierLocation=(index,pickup)=>{
 }
 
   const removeCarier = (index) => {
-    if (assetInfo.length > 1) {
+    if (carrierIds.length > 1) {
       dispatch(removeCarierLocation(index));
     }
   };
-console.log("assetInfo",assetInfo)
+console.log("carrierIds",carrierIds)
   return (
     <>
       <h6 className="section-title mb-3">Carier Information</h6>
 
-      {assetInfo.map((pickup, index) => (
+      {carrierIds.map((pickup, index) => (
         <Asset
           index={index}
-          onRemove={assetInfo.length > 1 ? removeCarier:null}
+          onRemove={carrierIds.length > 1 ? removeCarier:null}
           initialCarierLocation={initialCarierLocation}
           locations={locations}
           onUpdate={(index, location) => UpdateCarierLocation(index

@@ -4,7 +4,7 @@ import { useDispatch } from "react-redux";
 import CustomDatePicker from "@components/common/CommonDatePicker";
 import { CityDatabase, States } from "@data/cityDatabase";
 import { locationClasses, locationRequirement } from "@data/Loads";
-import { IoIosAdd, IoIosTrash } from "react-icons/io";
+import {  IoIosTrash } from "react-icons/io";
 import { updateDeliveryLocation } from "@redux/Slice/EditloadSlice";
 
 const DeliveryLocation = ({ index, pickup, onRemove,initialDeliveryLocation,locations }) => {
@@ -105,9 +105,7 @@ const DeliveryLocation = ({ index, pickup, onRemove,initialDeliveryLocation,loca
               </option>
             ))}
           </select>
-          <p onClick={()=>  dispatch(updateDeliveryLocation({index,...initialDeliveryLocation}))} className="create-link">
-            <IoIosAdd /> Click here to create a new Delivery location.
-          </p>
+         
         </div>
       </div>
       <div className="form-group row mt-2">

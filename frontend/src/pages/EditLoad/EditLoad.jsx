@@ -12,7 +12,7 @@ import {
   setCustomerInformation,
   setDriverInfo,
   initializeLoadData,
-  setAssetInfo,
+  setcarrierIds,
 } from "@redux/Slice/EditloadSlice";
 import "@styles/CreateLoad.scss";
 import apiService from "@service/apiService";
@@ -39,7 +39,7 @@ const EditLoad = () => {
     deletedfiles,
     customerInformation,
     pickupLocations, documentUpload,
-    assetInfo,
+    carrierIds,
     driverInfo,
     deliveryLocations,
     files,
@@ -89,7 +89,7 @@ const EditLoad = () => {
     const validateData = {
       load: loadDetails,
       customer: customerInformation,
-      asset: assetInfo,
+      asset: carrierIds,
       pickup: pickupLocations,
       delivery: deliveryLocations,
       document: {
@@ -104,7 +104,7 @@ const EditLoad = () => {
     try {
       let response = []
       const savedCarriers = await Promise.all(
-        assetInfo.map(async (asset, index) => {
+        carrierIds.map(async (asset, index) => {
           let response;
 
 
@@ -114,7 +114,7 @@ const EditLoad = () => {
           } else {
             response = await apiService.createCarrier(asset);
           }
-          dispatch(setAssetInfo({ index, asset: response.data }));
+          dispatch(setcarrierIds({ index, asset: response.data }));
 
           return response.data;
         })
@@ -239,7 +239,7 @@ const EditLoad = () => {
       dispatch(initializeLoadData({
         loadDetails,
         customerInformation: savedCustomer,
-        assetInfo: savedCarriers,
+        carrierIds: savedCarriers,
         pickupLocations: savedPickupLocations,
         deliveryLocations: savedDeliveryLocations,
         files: files,

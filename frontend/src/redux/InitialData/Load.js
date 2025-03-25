@@ -25,7 +25,7 @@ export const initalLoadData = {
     mcNumber: "",
     usdot: "",
   },
-  assetInfo: [
+  carrierIds: [
     {
       mcNumber: "",
       usdot: "",
@@ -89,7 +89,7 @@ export const initalLoadData = {
 
 export const initialLoadetails = initalLoadData.loadDetails;
 export const initialCustomerInformation = initalLoadData.customerInformation;
-export const initialAssetInfo = initalLoadData.assetInfo[0];
+export const initialcarrierIds = initalLoadData.carrierIds[0];
 export const initialDeliveryLocations = initalLoadData.deliveryLocations[0];
 export const initialPickupLocations = initalLoadData.pickupLocations[0];  
 export const initialDocumentUpload = {

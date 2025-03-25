@@ -16,7 +16,7 @@ const transformLoadData = (apiData) => {
         notes: apiData.notes,
       },
       customerInformation: apiData.customerId || initalLoadData.customerInformation,
-      assetInfo: apiData.carrierIds || initalLoadData.assetInfo,
+      carrierIds: apiData.carrierIds || initalLoadData.carrierIds,
       pickupLocations: apiData.pickupLocationId || initalLoadData.pickupLocations,
       deliveryLocations: apiData.deliveryLocationId || initalLoadData.deliveryLocations,
       files: apiData.files || initalLoadData.files,

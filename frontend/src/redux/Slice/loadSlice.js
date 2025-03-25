@@ -50,15 +50,15 @@ const loadSlice = createSlice({
     setCustomerVisibility: (state, { payload }) => {
       state.showCustomer = payload;
     },
-    toggleassetInfoVisibility: (state) => {
+    togglecarrierIdsVisibility: (state) => {
       state.showAsset = !state.showAsset;
     },
-    setassetInfoVisibility: (state, { payload }) => {
+    setcarrierIdsVisibility: (state, { payload }) => {
       state.showAsset = payload;
     },
     setDriverInfo: (state, action) => {
       const { index, driverInfo } = action.payload;
-      state.assetInfo[index].driverInfo = driverInfo;
+      state.carrierIds[index].driverInfo = driverInfo;
     },
     toggleDriverInfoVisibility: (state) => {
       state.showDriver = !state.showDriver;
@@ -93,10 +93,10 @@ const loadSlice = createSlice({
       };
     },
     
-    setAssetInfo: (state, action) => {
+    setcarrierIds: (state, action) => {
       const { index, asset } = action.payload;
-      state.assetInfo[index] = { 
-        ...state.assetInfo[index], 
+      state.carrierIds[index] = { 
+        ...state.carrierIds[index], 
         ...asset 
       };
     },
@@ -106,15 +106,15 @@ const loadSlice = createSlice({
     removeDeliveryLocation: (state, action) => {
       state.deliveryLocations = state.deliveryLocations.filter((_, index) => index !== action.payload);
     },
-    // update multiple cassetinfo
+    // update multiple ccarrierIds
     updateCarierLocation: (state, action) => {
-      state.assetInfo[action.payload.index] = action.payload;
+      state.carrierIds[action.payload.index] = action.payload;
     },
     addCarierLocation: (state, action) => {
-      state.assetInfo.push(action.payload);
+      state.carrierIds.push(action.payload);
     },
     removeCarierLocation: (state, action) => {
-      state.assetInfo = state.assetInfo.filter((_, index) => index !== action.payload);
+      state.carrierIds = state.carrierIds.filter((_, index) => index !== action.payload);
     },
 
     togglePickupVisibility: (state, action) => {
@@ -144,7 +144,7 @@ const loadSlice = createSlice({
 export const {
   setLoadDetails,
   setCustomerInformation,
-  setAssetInfo,
+  setcarrierIds,
   toggleDeliveryVisibility,
   setDeliveryInfo,
   setLoadId,
@@ -159,8 +159,8 @@ export const {
   removePickupLocation,
   resetLoad,
   setCustomerVisibility,
-  toggleassetInfoVisibility,
-  setassetInfoVisibility,
+  togglecarrierIdsVisibility,
+  setcarrierIdsVisibility,
   setDriverInfo,
   toggleDriverInfoVisibility,
   setDriverInfoVisibility,

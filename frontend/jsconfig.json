@@ -9,7 +9,8 @@
         "@assets/*": ["assets/*"],
         "@pages/*": ["pages/*"],
         "@redux/*": ["redux/*"],
-        "@data/*": ["data/*"]
+        "@data/*": ["data/*"],
+        "@common/*": ["common/*"]
       }
     }
   }

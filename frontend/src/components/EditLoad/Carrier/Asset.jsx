@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { IoIosAdd, IoIosTrash } from "react-icons/io";
-import { setAssetInfo } from "@redux/Slice/EditloadSlice";
+import { setcarrierIds } from "@redux/Slice/EditloadSlice";
 import apiService from "@service/apiService";
 import CustomDatePicker from "@components/common/CommonDatePicker";
-import { initalLoadData, initialAssetInfo } from "@redux/InitialData/Load";
+import { initialcarrierIds } from "@redux/InitialData/Load";
 import { taransformCarrierData } from "@utils/transformData";
 
 const Asset = ({ index, onRemove }) => {
   const dispatch = useDispatch();
-  const assetInfo = useSelector((state) => state.editload.assetInfo[index]);
+  const carrierIds = useSelector((state) => state.editload.carrierIds[index]);
+  console.log("carrierIds",carrierIds)
   const [carriers, setCarriers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -27,7 +28,7 @@ const Asset = ({ index, onRemove }) => {
     try {
       const response = await apiService.getDataByUsdotNumber(usdot);
       const transformedCarrierData = taransformCarrierData(response.data);
-      dispatch(setAssetInfo({ index, asset: transformedCarrierData }));
+      dispatch(setcarrierIds({ index, asset: transformedCarrierData }));
     } catch (err) {
       console.error("Error fetching carriers by USDOT:", err);
     }
@@ -44,12 +45,13 @@ const Asset = ({ index, onRemove }) => {
     if (selectedCarrierId && selectedCarrierId !== "") {
       try {
         const response = await apiService.getCarrier(selectedCarrierId);
-        dispatch(setAssetInfo({ index, asset: response.data }));
+        const transformedCarrierData = taransformCarrierData(response.data);
+        dispatch(setcarrierIds({ index, asset: transformedCarrierData }));
       } catch (err) {
         console.error("Error fetching carrier data:", err);
       }
     } else if (selectedCarrierId === "") {
-      dispatch(setAssetInfo({ index, asset: initialAssetInfo }));
+      dispatch(setcarrierIds({ index, asset: initialcarrierIds }));
     }
   };
 
@@ -62,8 +64,8 @@ const Asset = ({ index, onRemove }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // Create a new object copy of assetInfo
-    const updatedAsset = { ...assetInfo };
+    // Create a new object copy of carrierIds
+    const updatedAsset = { ...carrierIds };
   
     if (name.startsWith('driverInfo')) {
       const [, field] = name.split('.'); // Extract the field name (e.g., driver2Name)
@@ -76,12 +78,10 @@ const Asset = ({ index, onRemove }) => {
       updatedAsset[name] = value;
     }
   
-    dispatch(setAssetInfo({ index, asset: updatedAsset }));
+    dispatch(setcarrierIds({ index, asset: updatedAsset }));
   };
 
-  const addNewCarrier = () => {
-    dispatch(setAssetInfo({ index, asset: initialAssetInfo }));
-  };
+  
 
   return (
     <div className="pickup-location-container mb-4 p-3 border rounded">
@@ -115,9 +115,10 @@ const Asset = ({ index, onRemove }) => {
           <select 
             className="form-control" 
             onChange={handleCarrierChange} 
-            value={assetInfo?._id || ""}
+            value={carrierIds?._id || ""}
           >
             <option disabled value="">Select Carrier</option>
+            <option value="">Create New Carrier</option>
             {carriers
               .filter((carrier) => 
                 carrier.primaryContact.toLowerCase().includes(searchTerm.toLowerCase())
@@ -128,9 +129,7 @@ const Asset = ({ index, onRemove }) => {
                 </option>
               ))}
           </select>
-          <p onClick={addNewCarrier} className="create-link">
-            <IoIosAdd /> Click here to create a new Carrier to add to this load.
-          </p>
+         
         </div>
       </div>
 
@@ -144,7 +143,7 @@ const Asset = ({ index, onRemove }) => {
             className="form-control"
             placeholder="MC#"
             name="mcNumber"
-            value={assetInfo?.mcNumber || ""}
+            value={carrierIds?.mcNumber || ""}
             onChange={handleChange}
           />
         </div>
@@ -156,7 +155,7 @@ const Asset = ({ index, onRemove }) => {
             className="form-control"
             placeholder="USDOT Number"
             name="usdot"
-            value={assetInfo?.usdot || ""}
+            value={carrierIds?.usdot || ""}
             onChange={handleChange}
           />
         </div>
@@ -168,7 +167,7 @@ const Asset = ({ index, onRemove }) => {
             className="form-control"
             placeholder="Address"
             name="address"
-            value={assetInfo?.address || ""}
+            value={carrierIds?.address || ""}
             onChange={handleChange}
           />
         </div>
@@ -184,7 +183,7 @@ const Asset = ({ index, onRemove }) => {
             className="form-control"
             placeholder="Primary Contact"
             name="primaryContact"
-            value={assetInfo?.primaryContact || ""}
+            value={carrierIds?.primaryContact || ""}
             onChange={handleChange}
           />
         </div>
@@ -195,7 +194,7 @@ const Asset = ({ index, onRemove }) => {
             className="form-control"
             placeholder="Contact Email"
             name="contactEmail"
-            value={assetInfo?.contactEmail || ""}
+            value={carrierIds?.contactEmail || ""}
             onChange={handleChange}
           />
         </div>
@@ -215,7 +214,7 @@ const Asset = ({ index, onRemove }) => {
             className="form-control"
             placeholder="Driver 1 Name"
             name="driverInfo.driver1Name"
-            value={assetInfo?.driverInfo?.driver1Name || ""}
+            value={carrierIds?.driverInfo?.driver1Name || ""}
             onChange={handleChange}
             required
           />
@@ -227,7 +226,7 @@ const Asset = ({ index, onRemove }) => {
             className="form-control"
             placeholder="Driver 1 Phone"
             name="driverInfo.driver1Phone"
-            value={assetInfo?.driverInfo?.driver1Phone || ""}
+            value={carrierIds?.driverInfo?.driver1Phone || ""}
             onChange={handleChange}
             required
           />
@@ -239,7 +238,7 @@ const Asset = ({ index, onRemove }) => {
             className="form-control"
             placeholder="Driver 1 CDL Number"
             name="driverInfo.driver1CDL"
-            value={assetInfo?.driverInfo?.driver1CDL || ""}
+            value={carrierIds?.driverInfo?.driver1CDL || ""}
             onChange={handleChange}
             required
           />
@@ -250,7 +249,7 @@ const Asset = ({ index, onRemove }) => {
             type="date"
             className="form-control"
             name="driverInfo.driver1CDLExpiration"
-            value={assetInfo?.driverInfo?.driver1CDLExpiration || ""}
+            value={carrierIds?.driverInfo?.driver1CDLExpiration || ""}
             onChange={handleChange}
             required
           />
@@ -271,7 +270,7 @@ const Asset = ({ index, onRemove }) => {
             className="form-control"
             placeholder="Driver 2 Name"
             name="driverInfo.driver2Name"
-            value={assetInfo?.driverInfo?.driver2Name || ""}
+            value={carrierIds?.driverInfo?.driver2Name || ""}
             onChange={handleChange}
           />
         </div>
@@ -282,7 +281,7 @@ const Asset = ({ index, onRemove }) => {
             className="form-control"
             placeholder="Driver 2 Phone"
             name="driverInfo.driver2Phone"
-            value={assetInfo?.driverInfo?.driver2Phone || ""}
+            value={carrierIds?.driverInfo?.driver2Phone || ""}
             onChange={handleChange}
           />
         </div>
@@ -293,7 +292,7 @@ const Asset = ({ index, onRemove }) => {
             className="form-control"
             placeholder="Driver 2 CDL Number"
             name="driverInfo.driver2CDL"
-            value={assetInfo?.driverInfo?.driver2CDL || ""}
+            value={carrierIds?.driverInfo?.driver2CDL || ""}
             onChange={handleChange}
           />
         </div>
@@ -303,7 +302,7 @@ const Asset = ({ index, onRemove }) => {
             type="date"
             className="form-control"
             name="driverInfo.driver2CDLExpiration"
-            value={assetInfo?.driverInfo?.driver2CDLExpiration || ""}
+            value={carrierIds?.driverInfo?.driver2CDLExpiration || ""}
             onChange={handleChange}
           />
         </div>
@@ -318,7 +317,7 @@ const Asset = ({ index, onRemove }) => {
             className="form-control"
             placeholder="Power Unit"
             name="driverInfo.powerunit"
-            value={assetInfo?.driverInfo?.powerunit || ""}
+            value={carrierIds?.driverInfo?.powerunit || ""}
             onChange={handleChange}
             required
           />
@@ -330,7 +329,7 @@ const Asset = ({ index, onRemove }) => {
             className="form-control"
             placeholder="Trailer"
             name="driverInfo.trailer"
-            value={assetInfo?.driverInfo?.trailer || ""}
+            value={carrierIds?.driverInfo?.trailer || ""}
             onChange={handleChange}
             required
           />

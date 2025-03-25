@@ -5,7 +5,7 @@ import LoadDetails from "@components/CreateLoad/LoadDetails";
 import CustomerInformation from "@components/CreateLoad/CustomerInformation";
 import Carrier from "@components/CreateLoad/Carrier";
 import Delivery from "@components/CreateLoad/Delivery";
-import { setActiveTab, resetLoad, setAssetInfo, setCustomerInformation, updatePickupLocation, updateDeliveryLocation, setLoadId } from "@redux/Slice/loadSlice";
+import { setActiveTab, resetLoad, setcarrierIds, setCustomerInformation, updatePickupLocation, updateDeliveryLocation, setLoadId } from "@redux/Slice/loadSlice";
 import '@styles/CreateLoad.scss';
 import apiService from "@service/apiService";
 import { toast } from "react-toastify";
@@ -24,7 +24,7 @@ const CreateLoad = () => {
     loadDetails, 
     customerInformation, 
     pickupLocations, 
-    assetInfo,
+    carrierIds,
      id,
     deliveryLocations,
     files,
@@ -39,7 +39,7 @@ const CreateLoad = () => {
     const validateData = {
         load: loadDetails,
         customer: customerInformation,
-        asset: assetInfo,
+        asset: carrierIds,
         pickup: pickupLocations,
         delivery: deliveryLocations,
         document: {
@@ -53,7 +53,7 @@ const CreateLoad = () => {
 const saveCarrier = async () => {
   try {
     const savedCarriers = await Promise.all(
-      assetInfo.map(async (asset, index) => {
+      carrierIds.map(async (asset, index) => {
         let response;
         if (asset._id) {
           response = await apiService.updateCarrier(asset._id, asset);
@@ -61,7 +61,7 @@ const saveCarrier = async () => {
           response = await apiService.createCarrier(asset);
         }
         // Merge server response with existing asset data
-        dispatch(setAssetInfo({ 
+        dispatch(setcarrierIds({ 
           index, 
           asset: { ...asset, ...response.data } 
         }));
@@ -219,6 +219,7 @@ const handleTabChange = async (nextTab) => {
       //   dispatch(setActiveTab(nextTab));
       //   return 
       //  }
+      
       const currentIndex = tabs.indexOf(activeTab);
       const tabname = tabs[currentIndex];
       

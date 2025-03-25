@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Grid, TextField, Typography, Box, FormControl, InputLabel, Select, MenuItem, CircularProgress, FormHelperText } from '@mui/material';
 import apiService from '@/service/apiService';
 
-const HeaderSection = ({ searchTerm, setSearchTerm, register, balanceDue, errors, setValue, watch }) => {
+const HeaderSection = ({ register, errors, setValue, watch,customerId }) => {
+  console.log("customerId from load details",customerId)
+  console.log("watch",watch())
    const [customers, setCustomers] = useState([]);
    const [loading, setLoading] = useState(false);
 
@@ -34,7 +36,11 @@ const HeaderSection = ({ searchTerm, setSearchTerm, register, balanceDue, errors
       setValue('customerEmail', selectedCustomer.email);
     }
   };
-
+useEffect(()=>{
+  if(customerId){
+    handleCustomerSelect({target:{value:customerId}});
+  }
+},[customerId])
   return (
     <Grid item xs={12}>
       <Grid container spacing={3}>
@@ -74,10 +80,12 @@ const HeaderSection = ({ searchTerm, setSearchTerm, register, balanceDue, errors
           <FormControl fullWidth error={!!errors.invoiceNumber}>
             <TextField
               fullWidth
+              readOnly={true}
               label="Invoice Number"
-              {...register('invoiceNumber')}
+              value={watch('invoiceNumber')}
+              // {...register('invoiceNumber')}
               InputLabelProps={{ shrink: true }}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              // onChange={(e) => setSearchTerm(e.target.value)}
             />
             {errors.invoiceNumber && (
               <FormHelperText>{errors.invoiceNumber.message}</FormHelperText>

@@ -43,9 +43,6 @@ const Pickup = () => {
   const addNewPickupLocation = (data) => {
     dispatch(addPickupLocation(initialPickupLocation));
   };
-const UpdatePickupLocation=(index,pickup)=>{
-  dispatch(updatePickupLocation({ index, ...pickup ,showpickupForm:true}));
-}
 
   const removePickup = (index) => {
     if (pickupLocations.length > 1) {

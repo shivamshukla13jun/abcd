@@ -4,12 +4,13 @@ import { useDispatch } from "react-redux";
 import CustomDatePicker from "@components/common/CommonDatePicker";
 import { CityDatabase, States } from "@data/cityDatabase";
 import { locationClasses, locationRequirement } from "@data/Loads";
-import { IoIosAdd, IoIosTrash } from "react-icons/io";
+import { IoIosTrash } from "react-icons/io";
 import { updatePickupLocation } from "@redux/Slice/loadSlice";
 
 const PickupLocation = ({ index, pickup, onRemove,initialPickupLocation,locations }) => {
   const dispatch = useDispatch();
   const [cities, setCities] = useState([]);
+  console.log("fetch pickup",pickup)
   useEffect(() => {
     if(pickup?.state){
       let cities=CityDatabase.filter((item)=>item.state==pickup?.state)
@@ -34,6 +35,10 @@ const PickupLocation = ({ index, pickup, onRemove,initialPickupLocation,location
       //console.log("locations",locations)
       dispatch(updatePickupLocation({index, ...location}))
       // onUpdate(index, location);
+       if(name=="state"){
+           let cities=CityDatabase.filter((item)=>item.state==value)
+           setCities(cities)
+          }
       return 
   
     } catch (error) {
@@ -44,9 +49,13 @@ const PickupLocation = ({ index, pickup, onRemove,initialPickupLocation,location
   const handleChange = (e, datePicker = false, isTimePicker = false) => {
     const name = e.target.name
     const value = e.target.value;
+    
     const updatedPickupInfo = { ...pickup, [name]: value };
     dispatch(updatePickupLocation({index,...updatedPickupInfo}))
-    
+ if(name=="state"){
+     let cities=CityDatabase.filter((item)=>item.state==value)
+     setCities(cities)
+    }
   };
 
 
@@ -65,7 +74,7 @@ const PickupLocation = ({ index, pickup, onRemove,initialPickupLocation,location
     };
     dispatch(updatePickupLocation({index,...updatedPickupInfo}))
   };
-//console.log("fetch locations",locations)
+
   return (
     <div className="pickup-location-container mb-4 p-3 border rounded">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -100,9 +109,7 @@ const PickupLocation = ({ index, pickup, onRemove,initialPickupLocation,location
               </option>
             ))}
           </select>
-          <p onClick={()=>  dispatch(updatePickupLocation({index,...initialPickupLocation}))} className="create-link">
-            <IoIosAdd /> Click here to create a new Pickup location.
-          </p>
+        
         </div>
       </div>
       <div className="form-group row mt-2">
@@ -138,7 +145,6 @@ const PickupLocation = ({ index, pickup, onRemove,initialPickupLocation,location
             className="form-control"
             name="city"
             value={pickup.city || ""}
-
             onChange={(e) => handleChange(e, index)}
           >
             <option disabled value="">Select City</option>
