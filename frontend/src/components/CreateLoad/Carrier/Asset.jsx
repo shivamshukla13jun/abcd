@@ -4,12 +4,13 @@ import { IoIosAdd, IoIosTrash } from "react-icons/io";
 import { setAssetInfo } from "@redux/Slice/loadSlice";
 import apiService from "@service/apiService";
 import CustomDatePicker from "@components/common/CommonDatePicker";
-import { initalLoadData, initialAssetInfo } from "@redux/InitialData/Load";
+import { initialAssetInfo } from "@redux/InitialData/Load";
 import { taransformCarrierData } from "@utils/transformData";
 
 const Asset = ({ index, onRemove }) => {
   const dispatch = useDispatch();
   const assetInfo = useSelector((state) => state.load.assetInfo[index]);
+  console.log("assetInfo",assetInfo)
   const [carriers, setCarriers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -44,7 +45,8 @@ const Asset = ({ index, onRemove }) => {
     if (selectedCarrierId && selectedCarrierId !== "") {
       try {
         const response = await apiService.getCarrier(selectedCarrierId);
-        dispatch(setAssetInfo({ index, asset: response.data }));
+        const transformedCarrierData = taransformCarrierData(response.data);
+        dispatch(setAssetInfo({ index, asset: transformedCarrierData }));
       } catch (err) {
         console.error("Error fetching carrier data:", err);
       }
@@ -79,9 +81,7 @@ const Asset = ({ index, onRemove }) => {
     dispatch(setAssetInfo({ index, asset: updatedAsset }));
   };
 
-  const addNewCarrier = () => {
-    dispatch(setAssetInfo({ index, asset: initialAssetInfo }));
-  };
+  
 
   return (
     <div className="pickup-location-container mb-4 p-3 border rounded">
@@ -118,6 +118,7 @@ const Asset = ({ index, onRemove }) => {
             value={assetInfo?._id || ""}
           >
             <option disabled value="">Select Carrier</option>
+            <option value="">Create New Carrier</option>
             {carriers
               .filter((carrier) => 
                 carrier.primaryContact.toLowerCase().includes(searchTerm.toLowerCase())
@@ -128,9 +129,7 @@ const Asset = ({ index, onRemove }) => {
                 </option>
               ))}
           </select>
-          <p onClick={addNewCarrier} className="create-link">
-            <IoIosAdd /> Click here to create a new Carrier to add to this load.
-          </p>
+         
         </div>
       </div>
 
