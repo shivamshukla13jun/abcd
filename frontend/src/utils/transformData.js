@@ -33,6 +33,7 @@ const transformLoadData = (apiData) => {
   };
   const taransformCarrierData=(apiData)=>{
     return {
+      _id: apiData._id || null,
       mcNumber: apiData.mc_mx_ff_numbers || apiData.mcNumber,
       usdot: apiData.usdot || apiData.usdot,
       legal_name: apiData.legal_name || apiData.legal_name,

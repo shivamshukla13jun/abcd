@@ -188,17 +188,35 @@ const DeliveryLocationSchema = Yup.array().of(
 
 
 // Driver Schema
- const DriverSchema = Yup.object().shape({
-  driver1Name: Yup.string().required('Driver 1 Name is required'),
-  driver1Phone: Yup.string().required('Driver 1 Phone number is required'),
-  driver1CDL: Yup.string().required('Driver 1 CDL Number is required'),
-  driver1CDLExpiration: Yup.date().required('Driver 1 CDL Expiration date is required'),
-  driver2Name: Yup.string().required('Driver 2 Name is required'),
-  driver2Phone: Yup.string().required('Driver 2 Phone number is required'),
-  driver2CDL: Yup.string().required('Driver 2 CDL Number is required'),
-  driver2CDLExpiration: Yup.date().required('Driver 2 CDL Expiration date is required'),
-  powerunit: Yup.string().required('Power unit is required'),
-  trailer: Yup.string().required('Trailer is required'),
+const DriverSchema = Yup.object().shape({
+  driverName: Yup.string().required('Driver name is required'),
+  driverPhone: Yup.string().required('Driver phone is required'),
+  driverCDL: Yup.string().required('Driver CDL is required'),
+  driverCDLExpiration: Yup.date().required('Driver CDL expiration is required'),
+  isActive: Yup.boolean().default(true)
+});
+
+const VehicleSchema = Yup.object().shape({
+  powerUnits: Yup.array().of(
+    Yup.object().shape({
+      number: Yup.string().required('Power unit number is required'),
+      type: Yup.string().required('Power unit type is required'),
+      make: Yup.string(),
+      model: Yup.string(),
+      year: Yup.string(),
+      vin: Yup.string()
+    })
+  ),
+  trailers: Yup.array().of(
+    Yup.object().shape({
+      number: Yup.string().required('Trailer number is required'),
+      type: Yup.string().required('Trailer type is required'),
+      make: Yup.string(),
+      model: Yup.string(),
+      year: Yup.string(),
+      vin: Yup.string()
+    })
+  )
 });
 
 // Customer Schema
@@ -227,7 +245,8 @@ const CarrierSchema = Yup.object().shape({
   address: Yup.string().required('Address is required'),
   primaryContact: Yup.string().required('Primary contact is required'),
   contactEmail: Yup.string().email('Must be a valid email address').required('Contact email is required'),
-  driverInfo:DriverSchema
+  drivers: Yup.array().of(DriverSchema),
+  vehicles: VehicleSchema
 });
 export {
   LoadSchema,

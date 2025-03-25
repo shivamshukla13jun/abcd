@@ -12,6 +12,7 @@ import { verifyToken } from '../../middlewares/auth';
 import requestValidate from '../../middlewares/Requestalidate';
 import { CarrierSchema, CustomerSchema, DriverSchema, LoadSchema, LocationSchema } from './validate';
 import { AppError } from '../../middlewares/error';
+import { createDriver, getAllDrivers, getDriverById, deleteDriver, updateDriver } from './controllers/driver.controller';
 
 // Configure multer for file upload
 const storage = multer.diskStorage({
@@ -80,7 +81,11 @@ router.put('/customers/:id',verifyToken,requestValidate(CustomerSchema), updateC
 router.delete('/customers/:id',verifyToken, deleteCustomer);
 
 // Driver routes
-
+router.post('/drivers',verifyToken,requestValidate(DriverSchema), createDriver);
+router.get('/drivers',verifyToken, getAllDrivers);
+router.get('/drivers/:id',verifyToken, getDriverById);
+router.put('/drivers/:id',verifyToken,requestValidate(DriverSchema), updateDriver);
+router.delete('/drivers/:id',verifyToken, deleteDriver);
 
 // Location routes
 // Create a new location
