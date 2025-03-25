@@ -3,11 +3,13 @@ import { IoIosAdd } from 'react-icons/io';
 import { useDispatch, useSelector } from 'react-redux';
 import { setCustomerInformation, toggleCustomerVisibility } from '@redux/Slice/EditloadSlice';
 import apiService from '@service/apiService';
+import AddCustomer from '@/components/Customers/AddCustomer';
 
 const CustomerInformation = () => {
   const dispatch = useDispatch();
-  const { customerInformation, showCustomer } = useSelector((state) => state.editload);
+  const { customerInformation, } = useSelector((state) => state.editload);
   const [customers,setCustomers]=useState([])
+  const [showCustomerForm, setShowCustomerForm] = useState(false);
   // Get All Customers
   const fetchCustomers = async () => {
     try {
@@ -17,9 +19,7 @@ const CustomerInformation = () => {
       console.error('Error fetching customers:', err);
     }
   };
-  useEffect(() => {
-    fetchCustomers();
-  }, []);
+ 
 
   const handleCustomerChange = async (e) => {
     const selectedCustomerId = e.target.value;
@@ -34,8 +34,8 @@ const CustomerInformation = () => {
       }
     } else if (selectedCustomerId === '') {
       // Reset and open form for new customer
-      dispatch(setCustomerInformation({}));
-      dispatch(toggleCustomerVisibility(true));
+      setShowCustomerForm(true);
+        
     }
   };
 
@@ -47,10 +47,10 @@ const CustomerInformation = () => {
     }));
   };
 
-  const handleShow = () => {
-    dispatch(setCustomerInformation({}));
-    dispatch(toggleCustomerVisibility());
-  };
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
   return (
     <>
     <div className="form-group row">
@@ -61,8 +61,9 @@ const CustomerInformation = () => {
               onChange={handleCustomerChange}
               value={customerInformation._id || ''}
             >
+              
               <option disabled value="">Select Customer</option>
-              {/* <option value="">Create New Customer</option> */}
+              <option value="">Create New Customer</option>
               {customers.map((customer) => (
                 <option key={customer._id} value={customer._id}>{customer.customerName}</option>
               ))}
@@ -203,7 +204,18 @@ const CustomerInformation = () => {
     </div>
   
   </div>
-</>
+
+        {showCustomerForm && (
+          <AddCustomer
+            open={showCustomerForm}
+            onClose={() => setShowCustomerForm(false)}
+            onSuccess={() =>{
+              setShowCustomerForm(false)
+              fetchCustomers();
+            }}
+          />
+        )}
+        </>
   );
 };
 

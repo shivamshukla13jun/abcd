@@ -68,6 +68,11 @@ const EditLoad = () => {
   const handleTabChange = async (nextTab) => {
     try {
       setError(null);
+      const validateNextTab=  await validateTabData(nextTab); // Validate current tab data before switching
+       if(validateNextTab){
+        dispatch(setActiveTab(nextTab));
+        return 
+       }
       const currentIndex = tabs.indexOf(activeTab);
       const tabname = tabs[currentIndex];
 
@@ -176,7 +181,7 @@ const EditLoad = () => {
     try {
       setError(null);
       const currentIndex = tabs.indexOf(activeTab);
-
+      
       if (currentIndex < tabs.length - 1) {
         const tabname = tabs[currentIndex];
         await validateTabData(tabname); // Validate current tab data
@@ -267,15 +272,19 @@ const EditLoad = () => {
 
       const response = await apiService.updateLoad(loadId, formData);
       toast.success(`Load updated successfully!`);
-      navigate(paths.loads);
+      setTimeout(()=> {
+        setIsSubmitting(false);
+        navigate(paths.loads)
+      },1000)
     } catch (err) {
+
+      setIsSubmitting(false);
       console.error('Error submitting load:', err);
       const errorMsg = err?.response?.data?.message || err.message || 'Failed to submit load.';
       toast.error(errorMsg);
       setError(errorMsg);
-    } finally {
-      setIsSubmitting(false);
-    }
+
+    } 
   };
 
   console.log("AllData", AllData)
@@ -358,21 +367,31 @@ const EditLoad = () => {
               Previous
             </button>
             <button
+              type={activeTab === "document"?"submit":"button"}
+              className="btn btn-outline-primary ms-2 custom-button"
+              onClick={activeTab === "document"?handleSubmit:handleNext}
+              disabled={isSubmitting}
+            >
+              {
+                activeTab === "document"? "Save":isSubmitting?"Saving...":"Next"
+              }
+            </button>
+            {/* <button
               type="button"
               className="btn btn-outline-primary ms-2 custom-button"
               onClick={handleNext}
               disabled={activeTab === "document"}
             >
               Next
-            </button>
-            <button
+            </button> */}
+            {/* <button
               type="submit"
               onClick={handleSubmit}
               className="btn btn-success ms-2 custom-button"
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Saving...' : 'Save'}
-            </button>
+            </button> */}
           </div>
         </div>
       </form>

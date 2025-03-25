@@ -243,7 +243,7 @@ const tabsSchema={
 const validateLoadSchema = async (tab, formData) => {
   return new Promise((resolve, reject) => {
     tabsSchema[tab].validate(formData, { abortEarly: false })
-      .then(() => resolve())
+      .then(() => resolve(true))
       .catch((err) => {
         if (err.inner && err.inner.length > 0) {
           // Get the first validation error message

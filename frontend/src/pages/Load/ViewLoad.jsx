@@ -69,7 +69,7 @@ const ViewLoad = () => {
   };
 
   const handleCreateLoad = () => {
-    dispatch(resetnewLoad());
+    // dispatch(resetnewLoad());
     navigate("/createload");
   };
 

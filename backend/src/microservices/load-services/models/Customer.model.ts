@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface ICustomer extends Document {
   userId: mongoose.Types.ObjectId;
   customerName: string;
+  company: string;
   email: string;
   phone: string;
   address: string;
@@ -24,6 +25,7 @@ export interface ICustomer extends Document {
 const CustomerSchema: Schema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   customerName: { type: String, required: true },
+  company: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   phone: { type: String, required: true },
   address: { type: String, required: true },

@@ -203,24 +203,20 @@ const DeliveryLocationSchema = Yup.array().of(
 
 // Customer Schema
  const CustomerSchema = Yup.object().shape({
-  company:Yup.string().required("'Company name is required'"),
+  company: Yup.string().required('Company name is required'),
   customerName: Yup.string().required('Customer name is required'),
-  email: Yup.string().email('Must be a valid email address').required('Email is required'),
-  phone: Yup.string().required('Phone number is required'),
-  paymentMethod: Yup.string().required('Payment method is required'),
-  paymentTerms: Yup.array().of(Yup.string()).required('Payment term is required'),
-  // creditLimit: Yup.number().required('Credit limit is required'),
-  vatNumber: Yup.string().nullable(),
-  utrNumber: Yup.string().nullable(),
-  status: Yup.string(),
-  rating: Yup.string(),
-  city: Yup.string().required('City is required'),  
-  state: Yup.string().required('State is required'),
-  zipCode: Yup.string().required('Zipcode is required'),
+  email: Yup.string().email('Invalid email').required('Email is required'),
+  phone: Yup.string().required('Phone is required'),
   address: Yup.string().required('Address is required'),
-  referenceNumber: Yup.string().nullable(),
+  city: Yup.string().required('City is required'),
+  state: Yup.string().required('State is required'),
+  zipCode: Yup.string().required('Zip code is required'),
   mcNumber: Yup.string().required('MC Number is required'),
   usdot: Yup.string().required('USDOT Number is required'),
+  paymentMethod: Yup.string().required('Payment method is required'),
+  paymentTerms: Yup.array().of(Yup.string()).min(1, 'At least one payment term is required'),
+  vatNumber: Yup.string().required('VAT Registration Number is required'),
+  utrNumber: Yup.string().required('UTR number is required'),
   
 });
 

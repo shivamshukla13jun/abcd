@@ -24,7 +24,7 @@ const CreateLoad = () => {
     loadDetails, 
     customerInformation, 
     pickupLocations, 
-    assetInfo, documentUpload,
+    assetInfo,
      id,
     deliveryLocations,
     files,
@@ -196,20 +196,29 @@ const saveCarrier = async () => {
         setSuccess(`Load ${id ? 'updated' : 'created'} successfully!`);
         dispatch(setLoadId(response.data._id));
         toast.success(`Load ${id ? 'updated' : 'created'} successfully!`);
-        navigate(paths.loads);
+        setTimeout(()=> {
+          setIsSubmitting(false);
+          navigate(paths.loads)
+        },1000)
+        
     } catch (err) {
+      setIsSubmitting(false);
         const errorMsg = err?.response?.data?.message || err.message || 'Failed to submit load.';
         toast.error(errorMsg);
         setError(errorMsg);
         console.error('Error submitting load:', err);
-    } finally {
-        setIsSubmitting(false);
-    }
+    } 
 };
 
 const handleTabChange = async (nextTab) => {
   try {
       setError(null);
+      // check bnexttab is validate then go there
+      // const validateNextTab=  await validateTabData(nextTab); // Validate current tab data before switching
+      //  if(validateNextTab){
+      //   dispatch(setActiveTab(nextTab));
+      //   return 
+      //  }
       const currentIndex = tabs.indexOf(activeTab);
       const tabname = tabs[currentIndex];
       
@@ -303,21 +312,24 @@ console.log("loadData",loadData)
               Previous
             </button>
             <button
-              type="button"
+              type={activeTab === "document"?"submit":"button"}
               className="btn btn-outline-primary ms-2 custom-button"
-              onClick={handleNext}
-              disabled={activeTab === "document"}
+              onClick={activeTab === "document"?handleSubmit:handleNext}
+              // disabled={activeTab === "document"}
+              disabled={isSubmitting}
             >
-              Next
+              {
+                activeTab === "document"? "Save":isSubmitting?"Saving...":"Next"
+              }
             </button>
-            <button
+            {/* <button
               type="submit"
               onClick={handleSubmit}
               className="btn btn-success ms-2 custom-button"
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Saving...' : 'Save'}
-            </button>
+            </button> */}
           </div>
         </div>
       </form>

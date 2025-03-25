@@ -75,9 +75,9 @@ const getAllCustomers = async (req: Request, res: Response, next: NextFunction):
           as: 'paymentTerms'
         }
       },
-      {
-        $unwind: { path: '$paymentTerms', preserveNullAndEmptyArrays: true }
-      },
+      // {
+      //   $unwind: { path: '$paymentTerms', preserveNullAndEmptyArrays: true }
+      // },
 
 
       {

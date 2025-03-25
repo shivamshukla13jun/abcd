@@ -33,7 +33,7 @@ const schema = yup.object().shape({
   mcNumber: yup.string().required('MC Number is required'),
   usdot: yup.string().required('USDOT Number is required'),
   paymentMethod: yup.string().required('Payment method is required'),
-  paymentTerms: yup.array().min(1, 'At least one payment term is required'),
+  paymentTerms: yup.array().of(yup.string()).min(1, 'At least one payment term is required'),
   vatNumber: yup.string().required('VAT Registration Number is required'),
   utrNumber: yup.string().required('UTR number is required'),
 });
@@ -55,7 +55,8 @@ const AddCustomer = ({ open, onClose, onSuccess, initialData }) => {
     handleSubmit,
     formState: { errors },
     reset,
-    watch
+    watch,
+    setValue
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
@@ -70,7 +71,7 @@ const AddCustomer = ({ open, onClose, onSuccess, initialData }) => {
       mcNumber: initialData?.mcNumber || '',
       usdot: initialData?.usdot || '',
       paymentMethod: initialData?.paymentMethod || '',
-      paymentTerms: Array.isArray(initialData?.paymentTerms) ? initialData.paymentTerms : [],
+      paymentTerms: initialData?.paymentTerms?.map((term) => term._id) || [],
       vatNumber: initialData?.vatNumber || '',
       utrNumber: initialData?.utrNumber || '',
       _id: initialData?._id || undefined,
@@ -84,7 +85,7 @@ const AddCustomer = ({ open, onClose, onSuccess, initialData }) => {
         setPaymentTerms(response.data);
       } catch (error) {
         console.error('Error fetching payment terms:', error);
-        toast.error('Failed to fetch payment terms');
+        toast.error(error.message || 'Failed to fetch payment terms');
       }
     };
 
@@ -92,13 +93,17 @@ const AddCustomer = ({ open, onClose, onSuccess, initialData }) => {
   }, []);
   useEffect(() => {
     if (initialData) {
-      reset(initialData);
+      reset({
+        ...initialData,
+        paymentTerms: initialData.paymentTerms?.map((term) => term._id) || []
+      });
     }
-  }, [initialData]);
+  }, [initialData, reset]);
+
   const onSubmit = async (data) => {
     try {
       setIsSubmitting(true);
-      if (initialData._id) {
+      if (initialData?._id) {
         await apiService.updateCustomer(initialData._id, data);
       } else {
         await apiService.createCustomer(data);
@@ -109,12 +114,16 @@ const AddCustomer = ({ open, onClose, onSuccess, initialData }) => {
       toast.success('Customer added successfully');
     } catch (error) {
       console.error('Error creating customer:', error);
-      toast.error('Failed to create customer');
+      toast.error(error.message || 'Failed to create customer');
     } finally {
       setIsSubmitting(false);
     }
   };
-
+  const handlePaymentTermsChange = (event) => {
+    const selectedTerms = event.target.value; 
+    setValue('paymentTerms', selectedTerms);
+  };
+console.log("initialdata",initialData)
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>Add New Customer</DialogTitle>
@@ -308,14 +317,13 @@ const AddCustomer = ({ open, onClose, onSuccess, initialData }) => {
                   name="paymentTerms"
                   control={control}
                   defaultValue={[]}
-                  render={({ field: { value, ...field } }) => {
-                    console.log("value", value) // {_id,name,days} i get single value now add as a rray 
-                    return <Select
+                  render={({ field }) => (
+                    <Select
                       {...field}
-                      value={Array.isArray(value) ? value : []}
                       multiple
                       label="Payment Terms"
-                      
+                      value={field.value || []}
+                      onChange={handlePaymentTermsChange}
                     >
                       {paymentTerms.map((term) => (
                         <MenuItem key={term._id} value={term._id}>
@@ -323,8 +331,9 @@ const AddCustomer = ({ open, onClose, onSuccess, initialData }) => {
                         </MenuItem>
                       ))}
                     </Select>
-                  }}
+                  )}
                 />
+
                 {errors.paymentTerms && (
                   <FormHelperText>{errors.paymentTerms.message}</FormHelperText>
                 )}
