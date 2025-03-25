@@ -1,4 +1,5 @@
 export const initalLoadData = {
+  deletedfiles: [],
   loadDetails: {
     loadNumber: '',
     loadAmount: '',

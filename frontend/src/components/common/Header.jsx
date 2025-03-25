@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import { Navbar, Nav, Container, Dropdown } from "react-bootstrap";
 import { FaBell, FaUserCircle, FaCog, FaSignOutAlt, FaUserEdit } from "react-icons/fa";
 import profilePic from "@assets/icons/ic-user.png";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@redux/Slice/UserSlice";
 import "./Header.scss";
 
 const Header = () => {
   const dispatch = useDispatch();
+  const {user} = useSelector((state) => state.user);
+  console.log("user", user)
   const [notifications] = useState([
     {
       id: 1,
@@ -84,18 +86,20 @@ const Header = () => {
             </Dropdown.Toggle>
             <Dropdown.Menu className="header-dropdown">
               <div className="px-3 py-2 d-flex align-items-center gap-3 border-bottom">
-                <img
+                {/* <img
                   src={profilePic}
                   alt="Profile"
                   className="profile-image"
                   style={{ width: 48, height: 48 }}
-                />
+                /> */}
                 <div>
-                  <h6 className="mb-0">John Doe</h6>
-                  <small className="text-muted">Administrator</small>
+                  <h6 className="mb-0">{user?.name}</h6>
+                   {/* role show properly with head line role */}
+                  {/* first  role then which roles are there */}
+                  <small className="text-muted">{user?.role&& Array.isArray(user.role)? user.role.join(', '): user.role}</small>
                 </div>
               </div>
-              <Dropdown.Item className="profile-dropdown-item">
+              {/* <Dropdown.Item className="profile-dropdown-item">
                 <FaUserCircle className="profile-dropdown-icon" />
                 View Profile
               </Dropdown.Item>
@@ -106,7 +110,7 @@ const Header = () => {
               <Dropdown.Item className="profile-dropdown-item">
                 <FaCog className="profile-dropdown-icon" />
                 Settings
-              </Dropdown.Item>
+              </Dropdown.Item> */}
               <Dropdown.Divider />
               <Dropdown.Item 
                 className="profile-dropdown-item text-danger"

@@ -51,7 +51,9 @@ const InvoiceSchema: Schema = new Schema({
     type: String
   },
   terms: { 
-    type: String
+    type: mongoose.Types.ObjectId, 
+    ref: 'Terms',
+    required: true 
   },
   customerNotes: { 
     type: String 
@@ -69,6 +71,7 @@ const InvoiceSchema: Schema = new Schema({
   },
   paymentOptions: {
     type: String,
+    required: true,
     enum: ['Credit Card', 'Cash', 'Check', 'Wire'],
   },
 

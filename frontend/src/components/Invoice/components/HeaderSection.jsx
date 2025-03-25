@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Grid, TextField, Typography, Box, FormControl, InputLabel, Select, MenuItem, CircularProgress } from '@mui/material';
+import { Grid, TextField, Typography, Box, FormControl, InputLabel, Select, MenuItem, CircularProgress, FormHelperText } from '@mui/material';
 import apiService from '@/service/apiService';
 
-const HeaderSection = ({ searchTerm, setSearchTerm, register, balanceDue, errors, setValue }) => {
-   // Fetch customers
+const HeaderSection = ({ searchTerm, setSearchTerm, register, balanceDue, errors, setValue, watch }) => {
    const [customers, setCustomers] = useState([]);
    const [loading, setLoading] = useState(false);
 
@@ -27,7 +26,6 @@ const HeaderSection = ({ searchTerm, setSearchTerm, register, balanceDue, errors
   const handleCustomerSelect = (e) => {
     const selectedCustomer = customers.find(customer => customer._id === e.target.value);
     if (selectedCustomer) {
-      
       setValue('customerEmail', selectedCustomer.email);
       setValue('customerName', selectedCustomer.customerName);
       setValue('customerAddress', selectedCustomer.address);
@@ -41,15 +39,17 @@ const HeaderSection = ({ searchTerm, setSearchTerm, register, balanceDue, errors
     <Grid item xs={12}>
       <Grid container spacing={3}>
         <Grid item md={6}>
-          <FormControl fullWidth>
+          <FormControl fullWidth error={!!errors.customerId}>
             <InputLabel>Select Customer</InputLabel>
             <Select
               label="Select Customer"
               {...register('customerId')}
+              value={watch('customerId')}
               disabled={loading}
               onChange={handleCustomerSelect}
+              defaultValue=""
             >
-              <MenuItem value="" disabled>
+              <MenuItem value="">
                 {loading ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <CircularProgress size={20} />
@@ -65,30 +65,40 @@ const HeaderSection = ({ searchTerm, setSearchTerm, register, balanceDue, errors
                 </MenuItem>
               ))}
             </Select>
+            {errors.customerId && (
+              <FormHelperText>{errors.customerId.message}</FormHelperText>
+            )}
           </FormControl>
         </Grid>
         <Grid item md={4}>
-          <TextField
-            fullWidth
-            label="Invoice Number"
-            {...register('invoiceNumber')}
-            error={!!errors.invoiceNumber}
-            helperText={errors.invoiceNumber?.message}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Will be filled from load number"
-          />
+          <FormControl fullWidth error={!!errors.invoiceNumber}>
+            <TextField
+              fullWidth
+              label="Invoice Number"
+              {...register('invoiceNumber')}
+              InputLabelProps={{ shrink: true }}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {errors.invoiceNumber && (
+              <FormHelperText>{errors.invoiceNumber.message}</FormHelperText>
+            )}
+          </FormControl>
         </Grid>
         <Grid item md={12}>
-          <TextField
-            fullWidth
-            label="Billing Address"
-            multiline
-            rows={4}
-            {...register('customerAddress')}
-            error={!!errors.customerAddress}
-            helperText={errors.customerAddress?.message}
-            placeholder="Enter billing address"
-          />
+          <FormControl fullWidth error={!!errors.customerAddress}>
+            <TextField
+              fullWidth
+              label="Billing Address"
+              multiline
+              rows={4}
+              {...register('customerAddress')}
+              placeholder="Enter billing address"
+              InputLabelProps={{ shrink: true }}
+            />
+            {errors.customerAddress && (
+              <FormHelperText>{errors.customerAddress.message}</FormHelperText>
+            )}
+          </FormControl>
         </Grid>
       </Grid>
     </Grid>

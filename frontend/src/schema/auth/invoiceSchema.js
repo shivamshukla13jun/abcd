@@ -5,6 +5,7 @@ export const generateInvoiceSchema = yup.object().shape({
     dueDate: yup.date().default(new Date()).required('Due date is required'),
     location: yup.string().required('Location is required'),
     terms: yup.string().required('Terms are required'),
+    paymentOptions: yup.string().oneOf(['Credit Card', 'Cash', 'Check', 'Wire'], 'Invalid payment option').required('Payment options are required'),
     customerName: yup.string().required('Customer name is required'),
     customerEmail: yup.string().email('Invalid email').required('Customer email is required'),
     customerAddress: yup.string().required('Customer address is required'),
@@ -31,6 +32,13 @@ export const generateInvoiceSchema = yup.object().shape({
     totalAmount: yup.number().min(0).default(0),
     balanceDue: yup.number().min(0).default(0),
     customerId: yup.string().required('Customer ID is required'),
-    loadId: yup.string().required('Load ID is required'),
+    files: yup.array().of(yup.object().shape({
+      name: yup.string().required('File name is required'),
+      preview: yup.string().required('File preview is required'),
+      size: yup.number().required('File size is required'),
+      type: yup.string().required('File type is required')
+    })).default([]).notRequired(),
+    deletedfiles: yup.array().of(yup.string()).default([]).notRequired(),
+    // loadId: yup.string().required('Load ID is required'),
   
   });

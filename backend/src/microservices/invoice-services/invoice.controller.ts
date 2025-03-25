@@ -5,17 +5,19 @@ import * as pdf from 'html-pdf';
 import * as ejs from 'ejs';
 import path from 'path';
 import mongoose from 'mongoose';
-import { parseJSON } from 'src/libs';
 import { AppError } from '../../middlewares/error';
+import { FileService,MulterFile } from './services/file.service';
+
 
 export const generateInvoice = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const session = await mongoose.startSession();
   await session.startTransaction();
   try {
-    let { invoiceNumber, customerId, invoiceDate, dueDate, location, terms, customerNotes, terms_conditions, discountPercent, deposit } = req.body;
+    let { invoiceNumber, customerId, invoiceDate, dueDate, location, terms, customerNotes, terms_conditions, discountPercent, deposit,paymentOptions, } = req.body;
     invoiceDate = new Date(invoiceDate);
+    const files:MulterFile[] = req.files as MulterFile[] || [];
     dueDate = new Date(dueDate);
-    
+     console.log("paymentOptions", paymentOptions);
     console.log({invoiceNumber});
     // Find the load by invoice number
     const existingLoad = await Load.findOne({ loadNumber: invoiceNumber })
@@ -23,9 +25,20 @@ export const generateInvoice = async (req: Request, res: Response, next: NextFun
     if (!existingLoad) {
       throw new AppError('Load not found', 404);
     }
+    if (req.body.deletedfiles?.length) {
+      const deletedFiles = req.body.deletedfiles.split(',');
+      await FileService.deleteExistedFiles(deletedFiles);
+      existingLoad.files = existingLoad.files.filter((file) => !deletedFiles.includes(file.filename));
+    }
+     if(files && files.length>0){
+       files.forEach((file) => {
+         existingLoad.files.push(file);
+       });
+    }
     console.log(existingLoad);
     // Get items from load's documentUpload
     const items :itemsProps[]=req.body.items || existingLoad?.items || [];
+     
     existingLoad.items=items 
     await existingLoad.save({ session });
 
@@ -40,6 +53,7 @@ export const generateInvoice = async (req: Request, res: Response, next: NextFun
       userId: res.locals.userId,
       loadId: existingLoad._id,
       customerId,
+      paymentOptions,
       invoiceNumber,
       invoiceDate,
       dueDate,
@@ -61,7 +75,6 @@ export const generateInvoice = async (req: Request, res: Response, next: NextFun
     // Create invoice
     let existingInvoice = await Invoice.findOne({loadId: existingLoad._id})
     if(existingInvoice){
-      existingInvoice.status = 'pending';
       await existingInvoice.save({ session });
     }
     const invoice = await Invoice.create([invoicePayload], { session });
@@ -253,13 +266,16 @@ export const getInvoices = async (req: Request, res: Response, next: NextFunctio
           // Include all fields that the form needs
           _id: 1,
           invoiceNumber: 1,
-          invoiceDate: 1,
-          dueDate: 1,
+          // invoiceDate: 1,
+          // convert date related docs to DD/YYYY/MM format
+          invoiceDate: { $dateToString: { format: '%m/%d/%Y', date: '$invoiceDate' } },
+          dueDate: { $dateToString: { format: '%m/%d/%Y', date: '$dueDate' } },
           location: 1,
           terms: 1,
           customerName: 1,
           customerEmail: 1,
           customerAddress: 1,
+          paymentOptions: 1,
           customerId: 1,
           loadId: 1,
           loadNumber: '$invoiceNumber',
@@ -273,7 +289,7 @@ export const getInvoices = async (req: Request, res: Response, next: NextFunctio
           totalAmount: 1,
           balanceDue: 1,
           status: 1,
-          freightCharge: 1
+          freightCharge: 1,
         }
       }
     ]);
@@ -314,10 +330,10 @@ export const updateInvoice = async (req: Request, res: Response, next: NextFunct
   await session.startTransaction();
   try {
     const { invoiceId } = req.params;
-    let { invoiceNumber, customerId, invoiceDate, dueDate, location, terms, customerNotes, terms_conditions, discountPercent, deposit } = req.body;
+    let { invoiceNumber, customerId, invoiceDate, dueDate, location, terms, customerNotes, terms_conditions, discountPercent, deposit, paymentOptions } = req.body;
     invoiceDate = new Date(invoiceDate);
     dueDate = new Date(dueDate);
-    
+     const files:MulterFile[] = req.files as MulterFile[] || [];
     // Find the load by invoice number
     const existingLoad = await Load.findOne({ invoiceId: invoiceId }).session(session)
     console.log({existingLoad});
@@ -325,6 +341,17 @@ export const updateInvoice = async (req: Request, res: Response, next: NextFunct
       throw new AppError('Load not found', 404);
     }
     console.log(existingLoad);
+    // check deleted files
+    if (req.body.deletedfiles?.length) {
+      const deletedFiles = req.body.deletedfiles.split(',');
+      await FileService.deleteExistedFiles(deletedFiles);
+      existingLoad.files = existingLoad.files.filter((file) => !deletedFiles.includes(file.filename));
+    }
+     if(files && files.length>0){
+      files.forEach((file) => {
+        existingLoad.files.push(file);
+      });
+    }
     // Get items from load's documentUpload
     const items :itemsProps[]=req.body.items || existingLoad?.items || [];
     existingLoad.items=items 
@@ -346,6 +373,7 @@ export const updateInvoice = async (req: Request, res: Response, next: NextFunct
       dueDate,
       location,
       terms,
+      paymentOptions,
       items,
       customerNotes,
       terms_conditions,

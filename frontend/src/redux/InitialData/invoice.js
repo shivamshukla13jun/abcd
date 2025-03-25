@@ -22,5 +22,7 @@ export const initialinvoiceData = {
   customerNotes: '',
   terms_conditions: '',
   discountPercent: 0,
-  deposit: 0
+  deposit: 0,
+  files: [],
+  paymentStatus: 'Unpaid'
 };

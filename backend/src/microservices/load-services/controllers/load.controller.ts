@@ -175,6 +175,9 @@ const parseLoadData = (req: Request, userId:any) => {
   if (loadData.items && typeof loadData.items === 'string') {
     loadData.items = JSON.parse(loadData.items);
   }
+  if (loadData.deletedfiles && typeof loadData.deletedfiles === 'string') {
+    loadData.deletedfiles = JSON.parse(loadData.deletedfiles);
+  }
   
 
   loadData.carrierIds = convertToArray(loadData.carrierIds);
@@ -251,8 +254,8 @@ const updateLoad = async (req: Request, res: Response, next: NextFunction): Prom
     }
     let loadData = parseLoadData(req, userId);
      // Parse the stringified fields
-     if (loadData.items && typeof loadData.items === 'string') {
-      loadData.items = JSON.parse(loadData.items);
+    if(loadData.deletedfiles){
+      
     }
 
     // Convert comma-separated IDs to arrays
@@ -265,10 +268,22 @@ const updateLoad = async (req: Request, res: Response, next: NextFunction): Prom
     if (loadData.deliveryLocationId && typeof loadData.deliveryLocationId === 'string') {
       loadData.deliveryLocationId = loadData.deliveryLocationId.split(',').filter(Boolean);
     }
-    await handleFileUpdates(existingLoad, req, loadData);
-    await updateRelatedDocuments(loadData, loadId, session);
     
+    console.log("loadData deletedfiles", loadData?.deletedfiles)
+    if (loadData.deletedfiles?.length) {
+      
+      await FileService.deleteExistedFiles(loadData.deletedfiles);
+      existingLoad.files = existingLoad.files.filter((file) => !loadData.deletedfiles.includes(file.filename));
+    }
+    if (req.files && (req.files as MulterFile[]).length > 0) {
+      (req.files as MulterFile[]).forEach((file) => {
+        existingLoad.files.push(file);
+      });
+    }
     existingLoad.set(loadData);
+    
+    console.log("deletedfiles",typeof loadData.deletedfiles)
+    
     const load = await existingLoad.save({ session });
     
     await session.commitTransaction();

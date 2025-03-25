@@ -126,6 +126,25 @@ deposit: Yup.number().transform((value, originalValue) => {
     return isNaN(value) || originalValue === '' ? null : value;
   })
   .min(0, 'Deposit cannot be negative'),
+  deletedfiles: Yup.array().of(Yup.string()).transform((value, originalValue) => {
+    if (!originalValue || originalValue === '') {
+      return [];
+    }
+  
+    // Parse data if it's a string
+    if (typeof originalValue === 'string') {
+      try {
+        const parsed = JSON.parse(originalValue);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        return [];
+      }
+    }
+  
+    // If it's already an array, return it as-is
+    return value;
+  }),
+  
 
 balanceDue: Yup.number().transform((value, originalValue) => {
     // Convert empty strings or invalid numbers to `null`

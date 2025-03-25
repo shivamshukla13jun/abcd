@@ -175,8 +175,22 @@ const documentUploadSchema = Yup.object().shape({
     .of(Yup.mixed())
     .max(10, 'Maximum 10 files allowed'),
   
-  items: Yup.array()
-    .of(itemSchema)
+    items: Yup.array().of(
+      Yup.object().shape({
+        itemDetails: Yup.string().required('Item details are required'),
+        description: Yup.string(),
+        qty: Yup.number().required('Quantity is required').min(0).default(0),
+        rate: Yup.number().required('Rate is required').min(0).default(0),
+        discount: Yup.number().min(0).default(0),
+        tax: Yup.number().min(0).max(100).default(0), // Tax as number
+        amount: Yup.number().min(0).default(0)
+      })
+    ).transform((value, originalValue) => {
+      if(typeof value === 'string'){
+        return JSON.parse(value);
+      }
+      return value;
+    })
     .min(1, 'At least one item is required'),
   
   freightCharge: Yup.string()

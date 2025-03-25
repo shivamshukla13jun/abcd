@@ -3,15 +3,13 @@ import { useDropzone } from 'react-dropzone';
 import { Box, Paper, Typography, IconButton, Grid } from '@mui/material';
 import { CloudUpload, Delete } from '@mui/icons-material';
 
-const AttachmentsSection = ({ attachments, setAttachments, setValue, watch }) => {
+const AttachmentsSection = ({ attachments, setAttachments,setValue }) => {
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
       'image/*': ['.jpeg', '.jpg', '.png'],
       'application/pdf': ['.pdf'],
       'application/msword': ['.doc'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-      'application/vnd.ms-excel': ['.xls'],
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
     },
     maxSize: 20971520,
     onDrop: (acceptedFiles) => {
@@ -26,18 +24,10 @@ const AttachmentsSection = ({ attachments, setAttachments, setValue, watch }) =>
   });
 
   const handleRemoveFile = (index) => {
-    const fileToRemove = attachments[index];
-    
-    // Check if the file has originalname (meaning it's an existing file)
-    if (fileToRemove.originalname) {
-      // Get current deletedfiles array or initialize empty array
-      const currentDeletedFiles = watch('deletedfiles') || [];
-      // Add the originalname to deletedfiles array
-      setValue('deletedfiles', [...currentDeletedFiles, fileToRemove.filename]);
-    }
-
-    // Remove the file from attachments
-    setAttachments(prev => prev.filter((_, i) => i !== index));
+      setAttachments(prev => prev.filter((_, i) => i !== index));
+      // check deleted file has originalname key exist
+     
+   
   };
 
   const getFileSize = (file) => {
@@ -125,4 +115,5 @@ const AttachmentsSection = ({ attachments, setAttachments, setValue, watch }) =>
   );
 };
 
-export default AttachmentsSection;
+
+export default AttachmentsSection; 

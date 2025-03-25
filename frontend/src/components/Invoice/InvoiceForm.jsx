@@ -39,6 +39,7 @@ import NotesSection from './components/NotesSection';
 import { generateInvoiceSchema } from '@/schema/auth/invoiceSchema';
 import { format, formatDate } from 'date-fns';
 const InvoiceForm = ({ onSubmit ,initialData}) => {
+  console.log("initialData",initialData)
   const [searchTerm, setSearchTerm] = useState(initialData?.loadNumber || '');
   const [attachments, setAttachments] = useState([]);
   const [tags, setTags] = useState([]);
@@ -62,25 +63,6 @@ const InvoiceForm = ({ onSubmit ,initialData}) => {
     control,
     name: "items"
   });
-
-  const { getRootProps, getInputProps } = useDropzone({
-    accept: {
-      'image/*': ['.jpeg', '.jpg', '.png'],
-      'application/pdf': ['.pdf'],
-      'application/msword': ['.doc'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
-    },
-    maxSize: 20971520,
-    onDrop: (acceptedFiles) => {
-      const newAttachments = acceptedFiles.map(file => ({
-        file,
-        id: Math.random().toString(36).substring(7),
-        preview: URL.createObjectURL(file)
-      }));
-      setAttachments(prev => [...prev, ...newAttachments]);
-    }
-  });
-
   useEffect(() => {
     return () => attachments.forEach(file => URL.revokeObjectURL(file.preview));
   }, [attachments]);
@@ -114,7 +96,11 @@ useEffect(() => {
   const totalDiscount = (subTotal * (watch('discountPercent') || 0)) / 100;
   const total = subTotal - totalDiscount;
   const balanceDue = total - (watch('deposit') || 0);
-
+  setValue('subTotal', subTotal);
+  setValue('totalDiscount', totalDiscount);
+  setValue('total', total);
+  setValue('balanceDue', balanceDue);
+  
   setTotals({ subTotal, totalDiscount, total, balanceDue });
 }, [itemAmounts, watch('discountPercent'), watch('deposit')]);
 
@@ -133,6 +119,7 @@ useEffect(() => {
             location: loadData?.deliveryLocationId?.[0]?.address,
             items: loadData?.items,
           };
+          setAttachments(loadData?.files || []);
 
           Object.entries(updatedFields).forEach(([key, value]) => {
             setValue(key, value);
@@ -147,47 +134,31 @@ useEffect(() => {
     fetchLoadDetails();
   }, [debouncedSearchTerm, ]);
 
-  const handleAddItem = () => {
-    append({
-      itemDetails: '',
-      description: '',
-      qty: 1,
-      rate: 0,
-      discount: 0,
-      tax: 0, // Initialize tax as number
-      amount: 0
-    });
-  };
-
-  const handleTaxSelect = (index, taxRate) => {
-    setValue(`items.${index}.tax`, taxRate);
-  }; 
-   const handleFormSubmit = async (e) => {
-    e.preventDefault();
+console.log("deletedfiles", watch('deletedfiles'));
+ 
+  const handleFormSubmit = async (data) => {
     try {
-      const data = watch();
-      const formattedData = {
-        ...data,
-        // invoiceDate: format(new Date(data.invoiceDate), 'dd-MM-yyyy'),
-        // dueDate: format(new Date(data.dueDate), 'dd-MM-yyyy'),
-        // items: data.items.map(item => ({ ...item, amount: Number(item.amount) })),
-        customerId: loadDetails?.customerId?._id,
-        loadId: loadDetails?._id,
-        loadNumber: data.invoiceNumber,
-        totalAmount: data.total,
-        paidAmount: data.deposit,
-      };
-
       const formData = new FormData();
-      formData.append('invoiceData', JSON.stringify(formattedData));
-
+      
+      // Append all form fields
+      Object.keys(data).forEach(key => {
+        if (key === 'items') {
+          formData.append(key, JSON.stringify(data[key]));
+        } else {
+          formData.append(key, data[key]);
+        }
+      });
+      
+      // Append files
       attachments.forEach(attachment => {
-        formData.append('files', attachment.file);
+        if (attachment.file) {
+          formData.append('files', attachment.file);
+        }
       });
 
       await onSubmit(formData);
-      // toast.success('Invoice saved successfully');
     } catch (error) {
+      console.log("error", error);
       toast.error(error.message);
     }
   };
@@ -202,11 +173,11 @@ useEffect(() => {
 
   return (
     <Paper elevation={3} sx={{ p: 3 }}>
-      <Typography variant="h5" gutterBottom>
+      {/* <Typography variant="h5" gutterBottom>
         Create Invoice
-      </Typography>
+      </Typography> */}
 
-      <form onSubmit={handleFormSubmit}>
+      <form onSubmit={handleSubmit(handleFormSubmit)}>
         <Grid container spacing={3}>
           {/* Header Section */}
            {/* Customer Details */}
@@ -219,12 +190,15 @@ useEffect(() => {
             balanceDue={totals.balanceDue}
             errors={errors}
             setValue={setValue}
+            watch={watch}
           />
           </Grid>
           <Grid item xs={6}>
            <CustomerSection 
             register={register}
             errors={errors}
+            watch={watch}
+            setValue={setValue}
             />
             </Grid>
 
@@ -258,6 +232,8 @@ useEffect(() => {
           <AttachmentsSection 
             attachments={attachments}
             setAttachments={setAttachments}
+            setValue={setValue}
+            watch={watch}
           />
           </Grid>
 
@@ -281,7 +257,7 @@ useEffect(() => {
                 <Button
                   type="submit"
                   variant="contained"
-                  onClick={handleFormSubmit}
+                  onClick={handleSubmit(handleFormSubmit)}
                   startIcon={<Send />}
                 >
                   Save and Send

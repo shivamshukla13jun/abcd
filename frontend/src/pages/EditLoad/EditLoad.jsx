@@ -36,7 +36,7 @@ const EditLoad = () => {
   const {
     activeTab,
     loadDetails,
-
+    deletedfiles,
     customerInformation,
     pickupLocations, documentUpload,
     assetInfo,
@@ -123,20 +123,7 @@ const EditLoad = () => {
     }
   };
 
-  const saveCustomer = async () => {
-    try {
-      let response;
-      if (customerInformation._id) {
-        response = await apiService.updateCustomer(customerInformation._id, customerInformation);
-      } else {
-        response = await apiService.createCustomer(customerInformation);
-      }
-      dispatch(setCustomerInformation(response.data));
-      return response.data;
-    } catch (err) {
-      throw err;
-    }
-  };
+  
 
   const savePickupLocations = async () => {
     try {
@@ -221,7 +208,7 @@ const EditLoad = () => {
       files.forEach(file => {
         formData.append('loads', file);
       });
-
+    console.log("deletedfiles", deletedfiles?.map((file) => file));
       // Prepare load data
       const loadData = {
         ...loadDetails,
@@ -230,6 +217,7 @@ const EditLoad = () => {
         pickupLocationId: savedPickupLocations.map((loc) => loc._id).join(','),
         deliveryLocationId: savedDeliveryLocations.map((loc) => loc._id).join(','),
         items: items,
+        deletedfiles: deletedfiles?.map((file) => file) ||"",
         freightCharge: freightCharge
       };
 
@@ -273,17 +261,18 @@ const EditLoad = () => {
     setSuccess(null);
 
     try {
-      await Promise.all(tabs.map(validateTabData)); // Validate all tabs before submission
-      const formData = await saveLoad();
+     let errorValidation= await Promise.all(tabs.map(validateTabData)); // Validate all tabs before submission
+      console.log("errorValidation", errorValidation) 
+     const formData = await saveLoad();
 
       const response = await apiService.updateLoad(loadId, formData);
       toast.success(`Load updated successfully!`);
       navigate(paths.loads);
     } catch (err) {
+      console.error('Error submitting load:', err);
       const errorMsg = err?.response?.data?.message || err.message || 'Failed to submit load.';
       toast.error(errorMsg);
       setError(errorMsg);
-      console.error('Error submitting load:', err);
     } finally {
       setIsSubmitting(false);
     }

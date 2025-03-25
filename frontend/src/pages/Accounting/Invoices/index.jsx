@@ -60,19 +60,7 @@ const Invoices = () => {
     fetchInvoicesData();
   }, []);
 
-  // Handler functions
-  const handleDocumentUpload = async (file) => {
-    try {
-      setLoading(true);
-      await apiService.uploadDocument(file);
-      toast.success('Document uploaded successfully');
-      fetchInvoicesData(); // Refresh invoice list
-    } catch (error) {
-      toast.error('Failed to upload document');
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   const handleCreateInvoice = async (data) => {
     try {
@@ -81,18 +69,20 @@ const Invoices = () => {
       fetchInvoicesData();
       setShowInvoiceModal(false);
     } catch (error) {
-      // toast.error('Failed to create invoice');
+      toast.error('Failed to create invoice');
       toast.error(error.message);
     }
   };
 
   const handleEditInvoice = async (data) => {
     try {
+      console.log("data ???",data)
       await apiService.updateInvoice(editingInvoice._id, data);
       toast.success('Invoice updated successfully');
       fetchInvoicesData();
       handleCloseModal();
     } catch (error) {
+      console.log("error",error)
       // toast.error('Failed to update invoice');
       toast.error(error.message);
     }
@@ -211,6 +201,8 @@ const Invoices = () => {
           <InvoiceForm
             onSubmit={editingInvoice ? handleEditInvoice : handleCreateInvoice}
             initialData={editingInvoice}
+            // label={editingInvoice ? 'Edit Invoice' : 'Create New Invoice'}
+
           />
         </Box>
       </Modal>

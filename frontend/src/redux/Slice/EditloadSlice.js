@@ -15,7 +15,15 @@ const loadSlice = createSlice({
       state.files.push(action.payload);
     },
     removeFile: (state, action) => {
-      state.documentUpload.files = state.documentUpload.files.filter((_, index) => index !== action.payload);
+      // check removed file has a originalname
+      const fileToRemove = state.files[action.payload];
+      if (fileToRemove.originalname) {
+        // Get current deletedfiles array or initialize empty array
+        const currentDeletedFiles = state.deletedfiles || [];
+        // Add the originalname to deletedfiles array
+        state.deletedfiles = [...currentDeletedFiles, fileToRemove.filename];
+      }
+      state.files = state.files.filter((_, index) => index !== action.payload);
     },
     setItems: (state, action) => {
       state.items = action.payload;

@@ -12,6 +12,7 @@ const CustomDatePicker = ({
     onChange,
     required = false,
     placeholder = "Select Date/Time",
+    label="Selected Date/Time",
     minDate,
     maxDate,
     isTimePicker = false,
@@ -39,15 +40,16 @@ const CustomDatePicker = ({
         <LocalizationProvider dateAdapter={AdapterDayjs}>
             {isTimePicker ? (
                 <TimePicker
-                    label={placeholder}
+                    label={label}
                     value={value ? dayjs(`1970-01-01T${value}`) : null}
                     onChange={handleChange}
+                    placeholder={placeholder}
                     readOnly={readOnly}
                     renderInput={(params) => <TextField {...params} required={required} className={className} />}
                 />
             ) : (
                 <DatePicker
-                    label={placeholder}
+                    label={label}
                     value={value ? dayjs(value) : null}
                     onChange={handleChange}
                     readOnly={readOnly}

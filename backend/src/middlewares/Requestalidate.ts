@@ -16,10 +16,10 @@ const requestValidate = (schema: AnySchema) => async (req: Request, res: Respons
     console.log('Original Request Body:', req.body);
     const { invoiceData } = req.body;
 
-    // Parse 'invoiceData' if it's a JSON string using the custom function
-    if (invoiceData) {
-      req.body = { ...parseJsonString(invoiceData), ...req.body };
-    }
+    // // Parse 'invoiceData' if it's a JSON string using the custom function
+    // if (invoiceData) {
+    //   req.body = { ...parseJsonString(invoiceData), ...req.body };
+    // }
 
     // Validate the modified request body
     req.body = await schema.validate(req.body, { abortEarly: false, stripUnknown: true });

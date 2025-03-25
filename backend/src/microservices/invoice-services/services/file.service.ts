@@ -22,15 +22,7 @@ export class FileService {
             await fs.mkdir(this.UPLOAD_DIR, { recursive: true });
         }
     }
-    static async deleteExistedFiles(files: string[]): Promise<void> {
-        for (const file of files) {
-            try {
-                await fs.unlink(path.join(this.UPLOAD_DIR, file));
-            } catch (error) {
-                console.error(`Error deleting file ${file}:`, error);
-            }
-        }
-    }
+
     static async deleteFiles(files: MulterFile[] | string[]): Promise<void> {
         for (const file of files) {
             try {
@@ -38,6 +30,15 @@ export class FileService {
                 await fs.unlink(path.join(this.UPLOAD_DIR, filename));
             } catch (error) {
                 console.error(`Error deleting file ${typeof file === 'string' ? file : file.filename}:`, error);
+            }
+        }
+    }
+    static async deleteExistedFiles(files: string[]): Promise<void> {
+        for (const file of files) {
+            try {
+                await fs.unlink(path.join(this.UPLOAD_DIR, file));
+            } catch (error) {
+                console.error(`Error deleting file ${file}:`, error);
             }
         }
     }
