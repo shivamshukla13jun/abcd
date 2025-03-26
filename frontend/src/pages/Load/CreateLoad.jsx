@@ -35,7 +35,7 @@ const CreateLoad = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-  console.log("freightCharge",freightCharge)
+  console.log("loadData",loadData)
   const validateTabData = async (tabname) => {
     const validateData = {
         load: loadDetails,
@@ -144,7 +144,7 @@ const CreateLoad = () => {
         files.forEach(file => {
           formData.append('loads', file);
         });
-
+       console.log("carr")
         // Prepare load data
         const loadData = {
           ...loadDetails,

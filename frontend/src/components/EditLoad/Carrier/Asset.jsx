@@ -1,344 +1,160 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { IoIosAdd, IoIosTrash } from "react-icons/io";
-import { setcarrierIds } from "@redux/Slice/EditloadSlice";
-import apiService from "@service/apiService";
-import CustomDatePicker from "@components/common/CommonDatePicker";
-import { initialcarrierIds } from "@redux/InitialData/Load";
-import { taransformCarrierData } from "@utils/transformData";
+import {
+  Button,
+  Grid,
+  Typography,
+  Box,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  Card,
+  CardContent,
+} from "@mui/material";
+import { useCarrierModal } from "@/hooks/useCarrierModal";
+import { setcarrierIds } from "@/redux/Slice/EditloadSlice";
 
 const Asset = ({ index, onRemove }) => {
   const dispatch = useDispatch();
-  const carrierIds = useSelector((state) => state.editload.carrierIds[index]);
-  console.log("carrierIds",carrierIds)
+  const carrierData = useSelector((state) => state.editload.carrierIds[index]);
+
   const [carriers, setCarriers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [assignDrivers, setAssignDrivers] = useState(carrierData?.assignDrivers || []);
+  const [selectedCarrier, setSelectedCarrier] = useState(carrierData?.carrier || null);
+  const [loading, setLoading] = useState(false);
+  const [selectedDriver, setSelectedDriver] = useState("");
 
-  // Fetch carriers from API
-  const fetchCarriers = async () => {
-    try {
-      const response = await apiService.getCarriers();
-      setCarriers(response.data);
-    } catch (err) {
-      console.error("Error fetching carriers:", err);
-    }
-  };
-
-  const fetchCarriersByUSDOT = async (usdot) => {
-    try {
-      const response = await apiService.getDataByUsdotNumber(usdot);
-      const transformedCarrierData = taransformCarrierData(response.data);
-      dispatch(setcarrierIds({ index, asset: transformedCarrierData }));
-    } catch (err) {
-      console.error("Error fetching carriers by USDOT:", err);
-    }
-  };
+  const { fetchCarriers } = useCarrierModal(setCarriers, setLoading);
 
   useEffect(() => {
-    fetchCarriers();
+    fetchCarriers(setCarriers, setLoading);
   }, []);
 
-  // Handle Carrier Selection
-  const handleCarrierChange = async (e) => {
-    const selectedCarrierId = e.target.value;
-    
-    if (selectedCarrierId && selectedCarrierId !== "") {
-      try {
-        const response = await apiService.getCarrier(selectedCarrierId);
-        const transformedCarrierData = taransformCarrierData(response.data);
-        dispatch(setcarrierIds({ index, asset: transformedCarrierData }));
-      } catch (err) {
-        console.error("Error fetching carrier data:", err);
-      }
-    } else if (selectedCarrierId === "") {
-      dispatch(setcarrierIds({ index, asset: initialcarrierIds }));
-    }
+  const ChangeCarrier = (e) => {
+    const carrierId = e.target.value;
+    setSelectedCarrier(carrierId);
+    setAssignDrivers([]); // Reset assigned drivers
+    dispatch(setcarrierIds({ index, asset: { carrier: carrierId, assignDrivers: [] } }));
   };
 
-  const handleUSDOTChange = async (e) => {
-    const usdot = e.target.value;
-    if (usdot) {
-      await fetchCarriersByUSDOT(usdot);
+  const AddDriver = () => {
+    if (!selectedDriver) return;
+
+    if (!assignDrivers.includes(selectedDriver)) {
+      const updatedDrivers = [...assignDrivers, selectedDriver];
+      setAssignDrivers(updatedDrivers);
+      dispatch(setcarrierIds({ index, asset: { carrier: selectedCarrier, assignDrivers: updatedDrivers } }));
     }
+    setSelectedDriver("");
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    // Create a new object copy of carrierIds
-    const updatedAsset = { ...carrierIds };
-  
-    if (name.startsWith('driverInfo')) {
-      const [, field] = name.split('.'); // Extract the field name (e.g., driver2Name)
-      // Safely clone driverInfo and update the field
-      updatedAsset.driverInfo = {
-        ...(updatedAsset.driverInfo || {}), // Ensure driverInfo exists
-        [field]: value,
-      };
-    } else {
-      updatedAsset[name] = value;
-    }
-  
-    dispatch(setcarrierIds({ index, asset: updatedAsset }));
+  const removeDriver = (driverId) => {
+    const updatedDrivers = assignDrivers.filter((id) => id !== driverId);
+    setAssignDrivers(updatedDrivers);
+    dispatch(setcarrierIds({ index, asset: { carrier: selectedCarrier, assignDrivers: updatedDrivers } }));
   };
 
-  
+  const carrierInfo = carriers.find((c) => c._id === selectedCarrier);
 
   return (
     <div className="pickup-location-container mb-4 p-3 border rounded">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h6>Carrier {index + 1}</h6>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h6">Carrier {index + 1}</Typography>
         {onRemove && (
-          <button
-            type="button"
-            className="btn btn-sm btn-outline-danger"
-            onClick={() => onRemove(index)}
-          >
-            <IoIosTrash /> Remove
-          </button>
+          <Button variant="outlined" color="error" startIcon={<IoIosTrash />} onClick={() => onRemove(index)} size="small">
+            Remove
+          </Button>
         )}
-      </div>
+      </Box>
 
-      {/* Carrier Selection Section */}
-      <div className="form-group row">
-        <div className="col-sm-12">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Search by USDOT Number"
-            onChange={handleUSDOTChange}
-          />
-        </div>
-      </div>
-    
-      <div className="form-group row">
-        <div className="col-sm-12">
-          <select 
-            className="form-control" 
-            onChange={handleCarrierChange} 
-            value={carrierIds?._id || ""}
-          >
-            <option disabled value="">Select Carrier</option>
-            <option value="">Create New Carrier</option>
-            {carriers
-              .filter((carrier) => 
-                carrier.primaryContact.toLowerCase().includes(searchTerm.toLowerCase())
-              )
-              .map((carrier) => (
-                <option key={carrier._id} value={carrier._id}>
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <FormControl fullWidth>
+            <InputLabel>Select Carrier</InputLabel>
+            <Select value={selectedCarrier || ""} onChange={ChangeCarrier}>
+              <MenuItem disabled value="">Select Carrier</MenuItem>
+              {carriers.map((carrier) => (
+                <MenuItem key={carrier._id} value={carrier._id}>
                   {carrier.companyName} - {carrier.mcNumber}
-                </option>
+                </MenuItem>
               ))}
-          </select>
-         
-        </div>
-      </div>
+            </Select>
+          </FormControl>
+        </Grid>
+      </Grid>
 
-      {/* Carrier Details Section */}
-      <div className="form-group row">
-        <div className="col-sm-3">
-          <label className="form-label">MC#</label>
-          <input
-            type="text"
-            readOnly={true}
-            className="form-control"
-            placeholder="MC#"
-            name="mcNumber"
-            value={carrierIds?.mcNumber || ""}
-            onChange={handleChange}
-          />
-        </div>
-        <div className="col-sm-3">
-          <label className="form-label">USDOT Number</label>
-          <input
-            type="text"
-            readOnly={true}
-            className="form-control"
-            placeholder="USDOT Number"
-            name="usdot"
-            value={carrierIds?.usdot || ""}
-            onChange={handleChange}
-          />
-        </div>
-        <div className="col-sm-6">
-          <label className="form-label">Address</label>
-          <input
-            type="text"
-            readOnly={true}
-            className="form-control"
-            placeholder="Address"
-            name="address"
-            value={carrierIds?.address || ""}
-            onChange={handleChange}
-          />
-        </div>
-      </div>
+      {/* Carrier Details & Drivers Section */}
+      {selectedCarrier && (
+        <Box mt={2}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6">Carrier Details</Typography>
+              <Typography><b>Company Name:</b> {carrierInfo?.companyName || "Unknown Carrier"}</Typography>
+              <Typography><b>MC Number:</b> {carrierInfo?.mcNumber || "N/A"}</Typography>
 
-      {/* Contact Information Section */}
-      <div className="form-group row mt-5">
-        <div className="col-sm-3">
-          <label className="form-label">Primary Contact</label>
-          <input
-            type="text"
-            readOnly={true}
-            className="form-control"
-            placeholder="Primary Contact"
-            name="primaryContact"
-            value={carrierIds?.primaryContact || ""}
-            onChange={handleChange}
-          />
-        </div>
-        <div className="col-sm-3">
-          <label className="form-label">Contact Email</label>
-          <input
-            type="email"
-            className="form-control"
-            placeholder="Contact Email"
-            name="contactEmail"
-            value={carrierIds?.contactEmail || ""}
-            onChange={handleChange}
-          />
-        </div>
-      </div>
+              {/* Driver Selection Dropdown */}
+              <Box mt={2}>
+                <FormControl fullWidth>
+                  <InputLabel>Select a Driver</InputLabel>
+                  <Select value={selectedDriver} onChange={(e) => setSelectedDriver(e.target.value)}>
+                    <MenuItem disabled value="">Select a Driver</MenuItem>
+                    {carrierInfo?.drivers
+                      ?.filter((driver) => !assignDrivers.includes(driver._id)) // Prevent duplicate selection
+                      .map((driver) => (
+                        <MenuItem key={driver._id} value={driver._id}>
+                          {driver.driverName}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
 
-      {/* Driver Information Section */}
-      <div className="form-group row">
-        <div className="col-sm-12">
-          <h6 className="section-title mb-3">Driver 1</h6>
-        </div>
-      </div>
-      <div className="form-group row mb-4">
-        <div className="col-sm-3">
-          <label className="form-label">Driver 1 Name</label>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Driver 1 Name"
-            name="driverInfo.driver1Name"
-            value={carrierIds?.driverInfo?.driver1Name || ""}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="col-sm-3">
-          <label className="form-label">Driver 1 Phone</label>
-          <input
-            type="number"
-            className="form-control"
-            placeholder="Driver 1 Phone"
-            name="driverInfo.driver1Phone"
-            value={carrierIds?.driverInfo?.driver1Phone || ""}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="col-sm-3">
-          <label className="form-label">Driver 1 CDL Number</label>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Driver 1 CDL Number"
-            name="driverInfo.driver1CDL"
-            value={carrierIds?.driverInfo?.driver1CDL || ""}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="col-sm-3">
-          <label className="form-label">Driver 1 CDL Expiration</label>
-          <CustomDatePicker
-            type="date"
-            className="form-control"
-            name="driverInfo.driver1CDLExpiration"
-            value={carrierIds?.driverInfo?.driver1CDLExpiration || ""}
-            onChange={handleChange}
-            required
-          />
-        </div>
-      </div>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<IoIosAdd />}
+                  onClick={AddDriver}
+                  sx={{ mt: 1 }}
+                >
+                  Assign Driver
+                </Button>
+              </Box>
 
-      {/* Driver 2 Information Section */}
-      <div className="form-group row">
-        <div className="col-sm-12">
-          <h6 className="section-title mb-3">Driver 2</h6>
-        </div>
-      </div>
-      <div className="form-group row mb-4">
-        <div className="col-sm-3">
-          <label className="form-label">Driver 2 Name</label>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Driver 2 Name"
-            name="driverInfo.driver2Name"
-            value={carrierIds?.driverInfo?.driver2Name || ""}
-            onChange={handleChange}
-          />
-        </div>
-        <div className="col-sm-3">
-          <label className="form-label">Driver 2 Phone</label>
-          <input
-            type="number"
-            className="form-control"
-            placeholder="Driver 2 Phone"
-            name="driverInfo.driver2Phone"
-            value={carrierIds?.driverInfo?.driver2Phone || ""}
-            onChange={handleChange}
-          />
-        </div>
-        <div className="col-sm-3">
-          <label className="form-label">Driver 2 CDL Number</label>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Driver 2 CDL Number"
-            name="driverInfo.driver2CDL"
-            value={carrierIds?.driverInfo?.driver2CDL || ""}
-            onChange={handleChange}
-          />
-        </div>
-        <div className="col-sm-3">
-          <label className="form-label">Driver 2 CDL Expiration</label>
-          <CustomDatePicker
-            type="date"
-            className="form-control"
-            name="driverInfo.driver2CDLExpiration"
-            value={carrierIds?.driverInfo?.driver2CDLExpiration || ""}
-            onChange={handleChange}
-          />
-        </div>
-      </div>
-
-      {/* Vehicle Information Section */}
-      <div className="form-group row">
-        <div className="col-sm-6">
-          <label className="form-label">Power Unit</label>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Power Unit"
-            name="driverInfo.powerunit"
-            value={carrierIds?.driverInfo?.powerunit || ""}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="col-sm-6">
-          <label className="form-label">Trailer</label>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Trailer"
-            name="driverInfo.trailer"
-            value={carrierIds?.driverInfo?.trailer || ""}
-            onChange={handleChange}
-            required
-          />
-        </div>
-      </div>
+              {/* Assigned Drivers List */}
+              <Box mt={2}>
+                <Typography variant="h6">Assigned Drivers</Typography>
+                {assignDrivers.length > 0 ? (
+                  assignDrivers.map((driverId, idx) => {
+                    const driver = carrierInfo?.drivers?.find((d) => d._id === driverId);
+                    return (
+                      <Card variant="outlined" key={idx} sx={{ mt: 1, p: 1, display: "flex", justifyContent: "space-between" }}>
+                        <Box>
+                          <Typography><b>Driver {idx + 1}:</b> {driver?.driverName || "Unknown Driver"}</Typography>
+                        </Box>
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          size="small"
+                          startIcon={<IoIosTrash />}
+                          onClick={() => removeDriver(driverId)}
+                        >
+                          Remove
+                        </Button>
+                      </Card>
+                    );
+                  })
+                ) : (
+                  <Typography>No drivers assigned</Typography>
+                )}
+              </Box>
+            </CardContent>
+          </Card>
+        </Box>
+      )}
     </div>
   );
 };
 
-
-
 export default Asset;
+

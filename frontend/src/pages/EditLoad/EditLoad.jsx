@@ -10,9 +10,10 @@ import {
   setActiveTab,
   resetLoad,
   setCustomerInformation,
-  setDriverInfo,
   initializeLoadData,
   setcarrierIds,
+  updatePickupLocation,
+  updateDeliveryLocation
 } from "@redux/Slice/EditloadSlice";
 import "@styles/CreateLoad.scss";
 import apiService from "@service/apiService";
@@ -47,7 +48,7 @@ const EditLoad = () => {
     freightCharge,
   } = useSelector((state) => state.editload);
   const AllData = useSelector((state) => state.editload);
-
+  console.log("AllData".AllData)
   useEffect(() => {
     if (loadId) {
       dispatch(resetLoad()); // Reset state before fetching new data
@@ -65,27 +66,6 @@ const EditLoad = () => {
       fetchLoadData();
     }
   }, [loadId]);
-  const handleTabChange = async (nextTab) => {
-    try {
-      setError(null);
-      const currentIndex = tabs.indexOf(activeTab);
-      const tabname = tabs[currentIndex];
-      // Validate next tab before switching
-      // try {
-      //   // await validateTabData(nextTab); // Validate current tab data
-      // } catch (error) {
-      //   toast.error(error.message);
-      //   setError(error.message);
-      //   return;
-      // }
-      
-      dispatch(setActiveTab(nextTab));
-  
-    } catch (error) {
-      toast.error(error.message);
-      setError(error.message);
-    }
-  };
 
   const validateTabData = async (tabname) => {
     const validateData = {
@@ -98,165 +78,53 @@ const EditLoad = () => {
         files: files,
         items: items,
         freightCharge: freightCharge
-      },
+      }
     };
-    await validateLoadSchema(tabname, validateData[tabname]);
+    return await validateLoadSchema(tabname, validateData[tabname]);
   };
-  const saveCarrier = async () => {
-    try {
-      let response = []
-      const savedCarriers = await Promise.all(
-        carrierIds.map(async (asset, index) => {
-          let response;
-
-
-          // Step 3: Save or update carrier
-          if (asset._id) {
-            response = await apiService.updateCarrier(asset._id, asset);
-          } else {
-            response = await apiService.createCarrier(asset);
-          }
-          dispatch(setcarrierIds({ index, asset: response.data }));
-
-          return response.data;
-        })
-      );
-      response = savedCarriers
-
-      return response;
-    } catch (err) {
-      console.error('Error saving carrier:', err);
-      throw err;
-    }
-  };
-
-  
 
   const savePickupLocations = async () => {
     try {
       const savedLocations = [];
-
-      for (const pickup of pickupLocations) {
+      for (const [index, pickup] of pickupLocations.entries()) {
         let response;
         if (pickup._id) {
           response = await apiService.updateLocation(pickup._id, pickup);
         } else {
           response = await apiService.createLocation(pickup);
         }
+        dispatch(updatePickupLocation({
+          index,
+          ...response.data
+        }));
         savedLocations.push(response.data);
       }
-
       return savedLocations;
     } catch (err) {
       console.error('Error saving pickup locations:', err);
-      if (err.response && err.response.status === 400) {
-        throw new Error("Please fill all the required fields in pickup location");
-      } else {
-        throw new Error("An unexpected error occurred while saving pickup locations.");
-      }
+      throw err;
     }
   };
 
   const saveDeliveryLocation = async () => {
     try {
       const saveDeliveryLocation = [];
-      for (const delivery of deliveryLocations) {
+      for (const [index, delivery] of deliveryLocations.entries()) {
         let response;
         if (delivery._id) {
           response = await apiService.updateLocation(delivery._id, delivery);
         } else {
           response = await apiService.createLocation(delivery);
         }
+        dispatch(updateDeliveryLocation({
+          index,
+          ...response.data
+        }));
         saveDeliveryLocation.push(response.data);
       }
       return saveDeliveryLocation;
     } catch (err) {
       console.error('Error saving delivery location:', err);
-      if (err.response && err.response.status === 400) {
-        throw new Error("Please fill all required fields in delivery location");
-      }
-      throw err;
-    }
-  };
-
-  const handleNext = async () => {
-    try {
-      setError(null);
-      const currentIndex = tabs.indexOf(activeTab);
-      
-      if (currentIndex < tabs.length - 1) {
-        const tabname = tabs[currentIndex];
-        await validateTabData(tabname); // Validate current tab data
-        dispatch(setActiveTab(tabs[currentIndex + 1]));
-      }
-    } catch (error) {
-      toast.error(error.message);
-      setError(error.message);
-    }
-  };
-
-  const handlePrevious = () => {
-    const currentIndex = tabs.indexOf(activeTab);
-    if (currentIndex > 0) {
-      dispatch(setActiveTab(tabs[currentIndex - 1]));
-    }
-  };
-
-  const saveLoad = async () => {
-    try {
-      const savedCarriers = await saveCarrier();
-      const savedCustomer = customerInformation;
-      const savedPickupLocations = await savePickupLocations();
-      const savedDeliveryLocations = await saveDeliveryLocation();
-
-      const formData = new FormData();
-
-      // Add files
-      files.forEach(file => {
-        formData.append('loads', file);
-      });
-    console.log("deletedfiles", deletedfiles?.map((file) => file));
-      // Prepare load data
-      const loadData = {
-        ...loadDetails,
-        customerId: savedCustomer._id,
-        carrierIds: savedCarriers.map((carrier) => carrier._id).join(','),
-        pickupLocationId: savedPickupLocations.map((loc) => loc._id).join(','),
-        deliveryLocationId: savedDeliveryLocations.map((loc) => loc._id).join(','),
-        items: items,
-        deletedfiles: deletedfiles?.map((file) => file) ||"",
-        freightCharge: freightCharge
-      };
-
-      // Add load data to FormData
-      Object.keys(loadData).forEach(key => {
-        if(typeof loadData[key] === 'object'){
-          formData.append(key, JSON.stringify(loadData[key]));
-        }else{
-          formData.append(key, loadData[key]);
-        }
-      });
-
-      // Update the state initialization
-      dispatch(initializeLoadData({
-        loadDetails,
-        customerInformation: savedCustomer,
-        carrierIds: savedCarriers,
-        pickupLocations: savedPickupLocations,
-        deliveryLocations: savedDeliveryLocations,
-        files: files,
-        items: items,
-        freightCharge: freightCharge,
-        activeTab: "load",
-        showCustomer: !!savedCustomer,
-        showAsset: !!savedCarriers?.length,
-        showPickup: !!savedPickupLocations?.length,
-        showDelivery: !!savedDeliveryLocations?.length,
-      }));
-
-      return formData;
-    } catch (err) {
-      console.error('Error saving load:', err);
       throw err;
     }
   };
@@ -268,25 +136,63 @@ const EditLoad = () => {
     setSuccess(null);
 
     try {
-     let errorValidation= await Promise.all(tabs.map(validateTabData)); // Validate all tabs before submission
-      console.log("errorValidation", errorValidation) 
-     const formData = await saveLoad();
+      await Promise.all(tabs.map(validateTabData));
+      const pickupResponses = await savePickupLocations();
+      const deliveryResponses = await saveDeliveryLocation();
+      const formData = new FormData();
+
+      // Add files
+      files.forEach(file => {
+        formData.append('loads', file);
+      });
+
+      // Add deleted files if any
+      if (deletedfiles?.length) {
+        formData.append('deletedfiles', JSON.stringify(deletedfiles));
+      }
+
+      // Prepare load data
+      const loadData = {
+        ...loadDetails,
+        customerId: customerInformation._id,
+        carrierIds: carrierIds,
+        pickupLocationId: pickupResponses.map((loc) => loc._id).join(','),
+        deliveryLocationId: deliveryResponses.map((loc) => loc._id).join(','),
+        items: items,
+        freightCharge: freightCharge
+      };
+
+      // Add load data to FormData
+      Object.keys(loadData).forEach(key => {
+        if (typeof loadData[key] === 'object') {
+          formData.append(key, JSON.stringify(loadData[key]));
+        } else {
+          formData.append(key, loadData[key]);
+        }
+      });
 
       const response = await apiService.updateLoad(loadId, formData);
-      toast.success(`Load updated successfully!`);
-      setTimeout(()=> {
+      toast.success('Load updated successfully!');
+      setTimeout(() => {
         setIsSubmitting(false);
-        navigate(paths.loads)
-      },1000)
+        navigate(paths.loads);
+      }, 1000);
     } catch (err) {
-
       setIsSubmitting(false);
-      console.error('Error submitting load:', err);
-      const errorMsg = err?.response?.data?.message || err.message || 'Failed to submit load.';
+      const errorMsg = err?.response?.data?.message || err.message || 'Failed to update load.';
       toast.error(errorMsg);
       setError(errorMsg);
+    }
+  };
 
-    } 
+  const handleTabChange = async (nextTab) => {
+    try {
+      setError(null);
+      dispatch(setActiveTab(nextTab));
+    } catch (error) {
+      toast.error(error.message);
+      setError(error.message);
+    }
   };
 
   console.log("AllData", AllData)
@@ -363,7 +269,12 @@ const EditLoad = () => {
             <button
               type="button"
               className="btn btn-outline-secondary custom-button"
-              onClick={handlePrevious}
+              onClick={() => {
+                const currentIndex = tabs.indexOf(activeTab);
+                if (currentIndex > 0) {
+                  dispatch(setActiveTab(tabs[currentIndex - 1]));
+                }
+              }}
               disabled={activeTab === "load"}
             >
               Previous
@@ -371,29 +282,18 @@ const EditLoad = () => {
             <button
               type={activeTab === "document"?"submit":"button"}
               className="btn btn-outline-primary ms-2 custom-button"
-              onClick={activeTab === "document"?handleSubmit:handleNext}
+              onClick={activeTab === "document"?handleSubmit:() => {
+                const currentIndex = tabs.indexOf(activeTab);
+                if (currentIndex < tabs.length - 1) {
+                  dispatch(setActiveTab(tabs[currentIndex + 1]));
+                }
+              }}
               disabled={isSubmitting}
             >
               {
                 activeTab === "document"? "Save":isSubmitting?"Saving...":"Next"
               }
             </button>
-            {/* <button
-              type="button"
-              className="btn btn-outline-primary ms-2 custom-button"
-              onClick={handleNext}
-              disabled={activeTab === "document"}
-            >
-              Next
-            </button> */}
-            {/* <button
-              type="submit"
-              onClick={handleSubmit}
-              className="btn btn-success ms-2 custom-button"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Saving...' : 'Save'}
-            </button> */}
           </div>
         </div>
       </form>

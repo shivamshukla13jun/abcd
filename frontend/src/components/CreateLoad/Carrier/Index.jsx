@@ -54,9 +54,9 @@ const UpdateCarierLocation=(index,pickup)=>{
 }
 
   const removeCarier = (index) => {
-    if (carrierIds.length > 1) {
+    // if (carrierIds.length > 1) {
       dispatch(removeCarierLocation(index));
-    }
+    // }
   };
 console.log("carrierIds",carrierIds)
   return (
@@ -66,7 +66,7 @@ console.log("carrierIds",carrierIds)
       {carrierIds.map((pickup, index) => (
         <Asset
           index={index}
-          onRemove={carrierIds.length > 1 ? removeCarier:null}
+          onRemove={ removeCarier}
           initialCarierLocation={initialCarierLocation}
           locations={locations}
           onUpdate={(index, location) => UpdateCarierLocation(index

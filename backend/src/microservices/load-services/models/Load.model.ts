@@ -50,37 +50,39 @@ export enum EquipmentType {
   FLATBED_REEFER_VAN = 'Flatbed/Reefer/Van',
   POWER_ONLY = 'Power Only',
 }
-export interface itemsProps{
+
+export interface itemsProps {
   id: number;
   itemDetails: string;
   description: string;
   qty: number;
   rate?: number;
-  // discount?: number;
   tax?: number;
   amount?: number;
 }
-export interface  carierProps{
-    carrier:mongoose.Types.ObjectId[],
-    assigndrivers: mongoose.Types.ObjectId[],
-    carrierExpense:[
-    {  value:number | string,
-      label:mongoose.Types.ObjectId}
-    ]
-   
+
+export interface IExpenseItem {
+  value: number | string;
+  label: Types.ObjectId;
+}
+
+export interface ICarrierAssignment {
+  carrier: Types.ObjectId;
+  assignDrivers: Types.ObjectId[];
+  carrierExpense: IExpenseItem[];
+}
+
+export interface ICustomerExpense extends IExpenseItem {
+  customerId: Types.ObjectId;
 }
 
 export interface ILoad extends Document {
   loadNumber: string;
   status: LoadStatus;
-  invoiceId: mongoose.Types.ObjectId;
+  invoiceId: Types.ObjectId;
   commodity: string;
   loadSize: LoadSize;
-  customerExpense:[
-    {  value:number | string,
-      label:mongoose.Types.ObjectId},
-      customerId:Types.ObjectId
-    ];
+  customerExpense: ICustomerExpense[];
   declaredValue?: number;
   weight?: number;
   temperature?: number;
@@ -88,79 +90,135 @@ export interface ILoad extends Document {
   equipmentLength: '20' | '28' | '40' | '45' | '48' | '53';
   notes?: string;
   loadAmount: number;
-  userId: mongoose.Types.ObjectId;
-  customerId: mongoose.Types.ObjectId;
-  carrierIds:carierProps[];
-  pickupLocationId: mongoose.Types.ObjectId[];
-  deliveryLocationId: mongoose.Types.ObjectId[];
+  userId: Types.ObjectId;
+  customerId: Types.ObjectId;
+  carrierIds: ICarrierAssignment[];
+  pickupLocationId: Types.ObjectId[];
+  deliveryLocationId: Types.ObjectId[];
   files: any[];
   items: itemsProps[];
-  assigndrivers:mongoose.Types.ObjectId[];
   freightCharge: 'Prepaid' | 'Collect' | '3rd Party';
 }
 
-const LoadSchema: Schema = new Schema({
-  loadNumber: { type: String, required: true, unique: true },
-  status: { type: String, enum: Object.values(LoadStatus), default: LoadStatus.PENDING },
-  commodity: { type: String, required: true },
-  loadSize: { type: String, enum: Object.values(LoadSize), required: true },
+const ExpenseItemSchema = new Schema({
+  value: { type: Schema.Types.Mixed, required: true },
+  label: { type: Schema.Types.ObjectId, ref: 'ItemService', required: true }
+});
+
+const CustomerExpenseSchema = new Schema({
+  ...ExpenseItemSchema.obj,
+  customerId: { type: Schema.Types.ObjectId, ref: 'Customer', required: true }
+});
+
+const CarrierAssignmentSchema = new Schema({
+  carrier: { type: Schema.Types.ObjectId, ref: 'Carrier', required: true },
+  assignDrivers: [{ type: Schema.Types.ObjectId, ref: 'Driver' }],
+  carrierExpense: [ExpenseItemSchema],
+  
+}, { _id: false });
+
+const LoadItemSchema = new Schema({
+  id: { type: Number, required: true },
+  itemDetails: { type: String, required: true },
+  description: { type: String },
+  qty: { type: Number, required: true },
+  rate: { type: Number },
+  tax: { type: Number },
+  amount: { type: Number }
+});
+
+const LoadSchema = new Schema({
+  loadNumber: { 
+    type: String, 
+    required: true, 
+    unique: true,
+    index: true 
+  },
+  status: { 
+    type: String, 
+    enum: Object.values(LoadStatus), 
+    default: LoadStatus.PENDING 
+  },
+  invoiceId: { 
+    type: Schema.Types.ObjectId, 
+    ref: 'Invoice' 
+  },
+  commodity: { 
+    type: String, 
+    required: true 
+  },
+  loadSize: { 
+    type: String, 
+    enum: Object.values(LoadSize), 
+    required: true 
+  },
+  customerExpense: [CustomerExpenseSchema],
   declaredValue: { type: Number },
-  invoiceId: { type: mongoose.Types.ObjectId, ref: 'Invoice' },
   weight: { type: Number },
   temperature: { type: Number },
-  equipmentType: { type: String, enum: Object.values(EquipmentType), required: true },
-  equipmentLength: { type: String, enum: ['20', '28', '40', '45', '48', '53'], required: true },
+  equipmentType: { 
+    type: String, 
+    enum: Object.values(EquipmentType), 
+    required: true 
+  },
+  equipmentLength: { 
+    type: String, 
+    enum: ['20', '28', '40', '45', '48', '53'], 
+    required: true 
+  },
   notes: { type: String },
-  loadAmount: { type: Number, required: true },
-  userId: { type: mongoose.Types.ObjectId, ref: 'User', required: true },
-  customerExpense:[
-    { value:{type: mongoose.Types, },
-    customerId:{ type: mongoose.Types.ObjectId, ref: 'Customer', required: true },
-     label:mongoose.Types.ObjectId,ref:"itemservice"}
-   ],
-  customerId: { type: mongoose.Types.ObjectId, ref: 'Customer', required: true },
-  carrierIds: [
-    {
-      carrier:{type: mongoose.Types.ObjectId, ref: 'Carrier' },
-      assigndrivers: [{type: mongoose.Types.ObjectId, ref: 'Driver' }],
-      carrierExpense:[
-       { value:{type: mongoose.Types, },
-        label:mongoose.Types.ObjectId,ref:"itemservice"}
-      ]
-    }
-  ],
-  
-  pickupLocationId: [{ type: mongoose.Types.ObjectId, ref: 'Location' }],
-  deliveryLocationId: [{ type: mongoose.Types.ObjectId, ref: 'Location' }],
-  // documentUpload: {
-    files: [Schema.Types.Mixed],
-    items: [{
-      id: Number,
-      itemDetails: String,
-      description: String,
-      qty: Number,
-      rate: Number,
-      // discount: Number,
-      tax: Number,
-      amount: Number,
-    }],
-    freightCharge: { type: String, enum: ['Prepaid', 'Collect', '3rd Party'], default: 'Prepaid' },
-  // },
+  loadAmount: { 
+    type: Number, 
+    required: true 
+  },
+  userId: { 
+    type: Schema.Types.ObjectId, 
+    ref: 'User', 
+    required: true 
+  },
+  customerId: { 
+    type: Schema.Types.ObjectId, 
+    ref: 'Customer', 
+    required: true 
+  },
+  carrierIds: [CarrierAssignmentSchema],
+  pickupLocationId: [{ 
+    type: Schema.Types.ObjectId, 
+    ref: 'Location' 
+  }],
+  deliveryLocationId: [{ 
+    type: Schema.Types.ObjectId, 
+    ref: 'Location' 
+  }],
+  files: [Schema.Types.Mixed],
+  items: [LoadItemSchema],
+  freightCharge: { 
+    type: String, 
+    enum: ['Prepaid', 'Collect', '3rd Party'], 
+    default: 'Prepaid' 
+  }
 }, { 
   timestamps: true,
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
 });
-LoadSchema.pre('save', async function (next) {
-  const load = this;
-  if (load.isNew) {
-    const existingLoad = await Load.findOne({ loadNumber: load.loadNumber });
-    if (existingLoad) {
-       throw new AppError('Load number already exists', 400);
+
+LoadSchema.pre('save', async function(next) {
+  if (this.isNew) {
+    try {
+      const existingLoad = await Load.findOne({ loadNumber: this.loadNumber });
+      if (existingLoad) {
+        throw new AppError('Load number already exists', 400);
+      }
+      next();
+    } catch (error:any) {
+      next(error);
     }
+  } else {
+    next();
   }
-  next();
 });
+
 LoadSchema.set('toJSON', {
   virtuals: true,
   transform: (_, ret) => {
@@ -174,6 +232,10 @@ LoadSchema.set('toJSON', {
   }
 });
 
+LoadSchema.index({ loadNumber: 1 });
+LoadSchema.index({ status: 1 });
+LoadSchema.index({ customerId: 1 });
+LoadSchema.index({ 'carrierIds.carrier': 1 });
 
 const Load = model<ILoad>('Load', LoadSchema);
 export default Load;

@@ -12,18 +12,19 @@ import {
   FormControl,
   Card,
   CardContent,
-} from '@mui/material';
+} from "@mui/material";
 import { useCarrierModal } from "@/hooks/useCarrierModal";
 import { setcarrierIds } from "@/redux/Slice/loadSlice";
 
 const Asset = ({ index, onRemove }) => {
   const dispatch = useDispatch();
   const carrierData = useSelector((state) => state.load.carrierIds[index]);
+
   const [carriers, setCarriers] = useState([]);
   const [assignDrivers, setAssignDrivers] = useState(carrierData?.assignDrivers || []);
   const [selectedCarrier, setSelectedCarrier] = useState(carrierData?.carrier || null);
   const [loading, setLoading] = useState(false);
-  const [selectedDriver, setSelectedDriver] = useState(""); // Track selected driver
+  const [selectedDriver, setSelectedDriver] = useState("");
 
   const { fetchCarriers } = useCarrierModal(setCarriers, setLoading);
 
@@ -33,34 +34,29 @@ const Asset = ({ index, onRemove }) => {
 
   const ChangeCarrier = (e) => {
     const carrierId = e.target.value;
-    if (!carrierId) {
-      setSelectedCarrier(null);
-      setAssignDrivers([]);
-    } else {
-      const carrier = carriers.find((item) => item._id === carrierId);
-      setSelectedCarrier(carrier);
-      setAssignDrivers([]); // Reset assigned drivers
-      dispatch(setcarrierIds({ index, asset: { carrier, assignDrivers: [] } }));
-    }
+    setSelectedCarrier(carrierId);
+    setAssignDrivers([]); // Reset assigned drivers
+    dispatch(setcarrierIds({ index, asset: { carrier: carrierId, assignDrivers: [] } }));
   };
 
   const AddDriver = () => {
-    if (!selectedDriver) return; // Prevent adding empty driver
+    if (!selectedDriver) return;
 
-    const driver = selectedCarrier?.drivers?.find((d) => d._id === selectedDriver);
-    if (driver && !assignDrivers.some((d) => d._id === driver._id)) {
-      const updatedDrivers = [...assignDrivers, driver];
+    if (!assignDrivers.includes(selectedDriver)) {
+      const updatedDrivers = [...assignDrivers, selectedDriver];
       setAssignDrivers(updatedDrivers);
       dispatch(setcarrierIds({ index, asset: { carrier: selectedCarrier, assignDrivers: updatedDrivers } }));
     }
-    setSelectedDriver(""); // Reset selection
+    setSelectedDriver("");
   };
 
   const removeDriver = (driverId) => {
-    const updatedDrivers = assignDrivers.filter((driver) => driver._id !== driverId);
+    const updatedDrivers = assignDrivers.filter((id) => id !== driverId);
     setAssignDrivers(updatedDrivers);
     dispatch(setcarrierIds({ index, asset: { carrier: selectedCarrier, assignDrivers: updatedDrivers } }));
   };
+
+  const carrierInfo = carriers.find((c) => c._id === selectedCarrier);
 
   return (
     <div className="pickup-location-container mb-4 p-3 border rounded">
@@ -77,7 +73,7 @@ const Asset = ({ index, onRemove }) => {
         <Grid item xs={12}>
           <FormControl fullWidth>
             <InputLabel>Select Carrier</InputLabel>
-            <Select value={selectedCarrier?._id || ""} onChange={ChangeCarrier}>
+            <Select value={selectedCarrier || ""} onChange={ChangeCarrier}>
               <MenuItem disabled value="">Select Carrier</MenuItem>
               {carriers.map((carrier) => (
                 <MenuItem key={carrier._id} value={carrier._id}>
@@ -95,25 +91,24 @@ const Asset = ({ index, onRemove }) => {
           <Card>
             <CardContent>
               <Typography variant="h6">Carrier Details</Typography>
-              <Typography><b>Company Name:</b> {selectedCarrier.companyName}</Typography>
-              <Typography><b>MC Number:</b> {selectedCarrier.mcNumber}</Typography>
+              <Typography><b>Company Name:</b> {carrierInfo?.companyName || "Unknown Carrier"}</Typography>
+              <Typography><b>MC Number:</b> {carrierInfo?.mcNumber || "N/A"}</Typography>
 
               {/* Driver Selection Dropdown */}
               <Box mt={2}>
-                {/* <Typography variant="h6">Assign Drivers</Typography> */}
                 <FormControl fullWidth>
-  <InputLabel>Select a Driver</InputLabel>
-  <Select value={selectedDriver} onChange={(e) => setSelectedDriver(e.target.value)}>
-    <MenuItem disabled value="">Select a Driver</MenuItem>
-    {selectedCarrier.drivers
-      ?.filter(driver => !assignDrivers.some(d => d._id === driver._id)) // ✅ Filter already assigned drivers
-      .map((driver) => (
-        <MenuItem key={driver._id} value={driver._id}>
-          {driver.driverName}
-        </MenuItem>
-      ))}
-  </Select>
-</FormControl>
+                  <InputLabel>Select a Driver</InputLabel>
+                  <Select value={selectedDriver} onChange={(e) => setSelectedDriver(e.target.value)}>
+                    <MenuItem disabled value="">Select a Driver</MenuItem>
+                    {carrierInfo?.drivers
+                      ?.filter((driver) => !assignDrivers.includes(driver._id)) // Prevent duplicate selection
+                      .map((driver) => (
+                        <MenuItem key={driver._id} value={driver._id}>
+                          {driver.driverName}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
 
                 <Button
                   variant="contained"
@@ -130,22 +125,25 @@ const Asset = ({ index, onRemove }) => {
               <Box mt={2}>
                 <Typography variant="h6">Assigned Drivers</Typography>
                 {assignDrivers.length > 0 ? (
-                  assignDrivers.map((driver, idx) => (
-                    <Card variant="outlined" key={idx} sx={{ mt: 1, p: 1, display: "flex", justifyContent: "space-between" }}>
-                      <Box>
-                        <Typography><b>Driver {idx + 1}:</b> {driver.driverName}</Typography>
-                      </Box>
-                      <Button
-                        variant="outlined"
-                        color="error"
-                        size="small"
-                        startIcon={<IoIosTrash />}
-                        onClick={() => removeDriver(driver._id)}
-                      >
-                        Remove
-                      </Button>
-                    </Card>
-                  ))
+                  assignDrivers.map((driverId, idx) => {
+                    const driver = carrierInfo?.drivers?.find((d) => d._id === driverId);
+                    return (
+                      <Card variant="outlined" key={idx} sx={{ mt: 1, p: 1, display: "flex", justifyContent: "space-between" }}>
+                        <Box>
+                          <Typography><b>Driver {idx + 1}:</b> {driver?.driverName || "Unknown Driver"}</Typography>
+                        </Box>
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          size="small"
+                          startIcon={<IoIosTrash />}
+                          onClick={() => removeDriver(driverId)}
+                        >
+                          Remove
+                        </Button>
+                      </Card>
+                    );
+                  })
                 ) : (
                   <Typography>No drivers assigned</Typography>
                 )}
@@ -159,3 +157,4 @@ const Asset = ({ index, onRemove }) => {
 };
 
 export default Asset;
+

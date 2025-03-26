@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import Load from '../models/Load.model';
+import Load, { ICarrierAssignment } from '../models/Load.model';
 import Carrier from '../models/Carrier.model';
 import Location from '../models/Location.model';
 import { AppError } from '../../../middlewares/error';
@@ -45,7 +45,7 @@ const createLoad = async (req: Request, res: Response, next: NextFunction): Prom
       loadData.files = files
     }
 
-    // Create load
+    
     const [load] = await Load.create([loadData], { session });
     if (!load) {
       throw new AppError('Failed to create load', 400);
@@ -54,7 +54,7 @@ const createLoad = async (req: Request, res: Response, next: NextFunction): Prom
     // Update related documents
     if (loadData.carrierIds) {
       await Carrier.updateMany(
-        { _id: { $in: loadData.carrierIds.carrier } },
+        { _id: { $in: loadData.carrierIds.map((item:ICarrierAssignment)=>item.carrier) } },
         { $addToSet: { loads: load._id } },
         { session }
       );
@@ -363,22 +363,8 @@ const updateLoad = async (req: Request, res: Response, next: NextFunction): Prom
       throw new AppError('User not found', 404);
     }
     let loadData = parseLoadData(req, userId);
-     // Parse the stringified fields
-    if(loadData.deletedfiles){
-      
-    }
+  
 
-    // Convert comma-separated IDs to arrays
-    if (loadData.carrierIds && typeof loadData.carrierIds === 'string') {
-      loadData.carrierIds = loadData.carrierIds.split(',').filter(Boolean);
-    }
-    if (loadData.pickupLocationId && typeof loadData.pickupLocationId === 'string') {
-      loadData.pickupLocationId = loadData.pickupLocationId.split(',').filter(Boolean);
-    }
-    if (loadData.deliveryLocationId && typeof loadData.deliveryLocationId === 'string') {
-      loadData.deliveryLocationId = loadData.deliveryLocationId.split(',').filter(Boolean);
-    }
-    
     console.log("loadData deletedfiles", loadData?.deletedfiles)
     if (loadData.deletedfiles?.length) {
       
@@ -395,7 +381,28 @@ const updateLoad = async (req: Request, res: Response, next: NextFunction): Prom
     console.log("deletedfiles",typeof loadData.deletedfiles)
     
     const load = await existingLoad.save({ session });
-    
+    // Update related documents
+    if (loadData.carrierIds) {
+      await Carrier.updateMany(
+        { _id: { $in: loadData.carrierIds.map((item:ICarrierAssignment)=>item.carrier) } },
+        { $addToSet: { loads: load._id } },
+        { session }
+      );
+    }
+    if (loadData.pickupLocationId?.length) {
+      await Location.updateMany(
+        { _id: { $in: loadData.pickupLocationId } },
+        { $addToSet: { loads: load._id }, type: 'pickup' },
+        { session }
+      );
+    }
+    if (loadData.deliveryLocationId?.length) {
+      await Location.updateMany(
+        { _id: { $in: loadData.deliveryLocationId } },
+        { $addToSet: { loads: load._id }, type: 'delivery' },
+        { session }
+      );
+    }
     await session.commitTransaction();
     session.endSession();
 

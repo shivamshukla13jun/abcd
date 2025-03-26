@@ -197,6 +197,27 @@ const apiService = {
     const response = await api.get(`/payment-terms/${id}`);
     return response.data;
   },
+  //  Item Services APIs
+createItemService: async (paymentTermData) => {
+  const response = await api.post("/itemservices", paymentTermData);
+  return response.data;
+},
+updateItemService: async (id, paymentTermData) => {
+  const response = await api.put(`/itemservices/${id}`, paymentTermData);
+  return response.data;
+},
+deleteItemService: async (id) => {
+  const response = await api.delete(`/itemservices/${id}`);
+  return response.data;
+},
+getItemServices: async () => {
+  const response = await api.get("/itemservices");
+  return response.data;
+},
+getPaymentTermById: async (id) => {
+  const response = await api.get(`/itemservices/${id}`);
+  return response.data;
+},
 };
 
 export default apiService;
