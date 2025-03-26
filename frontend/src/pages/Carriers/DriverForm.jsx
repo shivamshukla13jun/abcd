@@ -7,19 +7,19 @@ import {
   FormControlLabel,
   Switch
 } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { DatePicker } from '@mui/x-date-pickers';
+import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from 'dayjs';
 
-const DriverInfo = ({ driverData, onSubmit, onCancel }) => {
+const DriverForm = ({ driver, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
     driverName: '',
     driverPhone: '',
     driverCDL: '',
     driverCDLExpiration: null,
     isActive: true,
-    ...driverData
+    ...driver
   });
 
   useEffect(() => {
@@ -29,9 +29,9 @@ const DriverInfo = ({ driverData, onSubmit, onCancel }) => {
       driverCDL: '',
       driverCDLExpiration: null,
       isActive: true,
-      ...driverData
+      ...driver
     });
-  }, [driverData]);
+  }, [driver]);
 
   const handleChange = (field) => (event) => {
     setFormData(prev => ({
@@ -40,20 +40,13 @@ const DriverInfo = ({ driverData, onSubmit, onCancel }) => {
     }));
   };
 
-  const handleDateChange = (date) => {
-    setFormData(prev => ({
-      ...prev,
-      driverCDLExpiration: date ? dayjs(date).format('YYYY-MM-DD') : null
-    }));
-  };
-
-  const handleSubmit = () => {
-    // e.preventDefault();
+  const handleSubmit = (e) => {
+    e.preventDefault();
     onSubmit(formData);
   };
 
   return (
-    <form >
+    <form onSubmit={handleSubmit}>
       <Grid container spacing={2}>
         <Grid item xs={12} md={6}>
           <TextField
@@ -83,14 +76,21 @@ const DriverInfo = ({ driverData, onSubmit, onCancel }) => {
           />
         </Grid>
         <Grid item xs={12} md={6}>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DatePicker
-            label="CDL Expiration"
-            value={formData.driverCDLExpiration ? dayjs(formData.driverCDLExpiration) : null}
-            onChange={handleDateChange}
-            format="YYYY-MM-DD"
-            renderInput={(params) => <TextField fullWidth {...params} />}
-          />
+  label="CDL Expire Date"
+  value={formData.driverCDLExpiration ? dayjs(formData.driverCDLExpiration) : null} // Ensure it's a dayjs object
+  onChange={(date) => {
+    setFormData(prev => ({
+      ...prev,
+      driverCDLExpiration: date ? date.toISOString() : null  // Store as ISO string
+    }));
+  }}
+  renderInput={(params) => <TextField {...params} required />}
+/>
+
+
           </LocalizationProvider>
         </Grid>
         <Grid item xs={12}>
@@ -112,8 +112,8 @@ const DriverInfo = ({ driverData, onSubmit, onCancel }) => {
             <Button onClick={onCancel}>
               Cancel
             </Button>
-            <Button  onClick={handleSubmit} variant="contained" color="primary">
-              {driverData?._id ? 'Update Driver' : 'Add Driver'}
+            <Button type="submit" variant="contained" color="primary">
+              {driver?._id ? 'Update Driver' : 'Add Driver'}
             </Button>
           </Box>
         </Grid>
@@ -122,4 +122,4 @@ const DriverInfo = ({ driverData, onSubmit, onCancel }) => {
   );
 };
 
-export default DriverInfo;
+export default DriverForm;

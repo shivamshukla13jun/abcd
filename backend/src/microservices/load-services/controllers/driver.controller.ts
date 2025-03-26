@@ -11,13 +11,14 @@ import { AppError } from '../../../middlewares/error';
 const createDriver = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     // Check if carrier exists
+    console.log("carrierId", req.body.carrierId);
     const carrier = await Carrier.findById(req.body.carrierId);
     if (!carrier) {
       throw new AppError('Carrier not found', 404);
     }
 
     // Check if driver with same CDL exists
-    const existingDriver = await Driver.findOne({ cdlNumber: req.body.cdlNumber });
+    const existingDriver = await Driver.findOne({ driverCDL: req.body.driverCDL });
     if (existingDriver) {
       throw new AppError('Driver with this CDL number already exists', 400);
     }

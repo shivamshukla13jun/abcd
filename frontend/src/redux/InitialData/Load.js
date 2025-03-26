@@ -27,23 +27,8 @@ export const initalLoadData = {
   },
   carrierIds: [
     {
-      mcNumber: "",
-      usdot: "",
-      address: "",
-      primaryContact: "",
-      contactEmail: "",
-      driverInfo: {
-        driver1Name: "",
-        driver2Name: "",
-        driver1Phone: "",
-        driver2Phone: "",
-        driver1CDL: "",
-        driver2CDL: "",
-        driver1CDLExpiration: "",
-        driver2CDLExpiration: "",
-        powerunit: "",
-        trailer: "",
-      },
+      carrier:null,
+      assignDrivers:[]
     },
   ],
   deliveryLocations: [

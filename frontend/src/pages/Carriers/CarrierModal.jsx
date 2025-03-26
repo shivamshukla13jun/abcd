@@ -10,8 +10,6 @@ import {
   Typography,
   Box,
 } from '@mui/material';
-import CustomDatePicker from "@components/common/CommonDatePicker";
-import DriverList from './DriverList';
 
 const CarrierModal = ({ 
   open, 
@@ -19,10 +17,8 @@ const CarrierModal = ({
   carrierData, 
   onChange, 
   onSubmit,
-  onDriverAdd,
-  onDriverRemove,
-  onDriverChange
 }) => {
+  console.log("carrierData",carrierData)
   return (
     <Dialog 
       open={open} 

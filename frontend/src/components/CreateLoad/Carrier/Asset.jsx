@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { IoIosAdd, IoIosTrash } from "react-icons/io";
-import { v4 as uuidv4 } from "uuid";
 import {
   Button,
-  TextField,
   Grid,
   Typography,
   Box,
@@ -12,98 +10,56 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
-  IconButton,
   Card,
   CardContent,
-  Collapse
 } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon } from '@mui/icons-material';
-import { setcarrierIds } from "@redux/Slice/loadSlice";
-import apiService from "@service/apiService";
-import { initialcarrierIds } from "@redux/InitialData/Load";
-import { taransformCarrierData } from "@utils/transformData";
-import { toast } from "react-hot-toast";
-import CarrierModal from './CarrierModal';
-import DriverInfo from './DriverInfo';
+import { useCarrierModal } from "@/hooks/useCarrierModal";
+import { setcarrierIds } from "@/redux/Slice/loadSlice";
 
 const Asset = ({ index, onRemove }) => {
   const dispatch = useDispatch();
-  const carrierIds = useSelector((state) => state.load.carrierIds[index]);
+  const carrierData = useSelector((state) => state.load.carrierIds[index]);
   const [carriers, setCarriers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showCarrierModal, setShowCarrierModal] = useState(false);
-  const [selectedDrivers, setSelectedDrivers] = useState([]);
-  const [showAddDriverForm, setShowAddDriverForm] = useState(false);
-  const [editingDriver, setEditingDriver] = useState(null);
+  const [assignDrivers, setAssignDrivers] = useState(carrierData?.assignDrivers || []);
+  const [selectedCarrier, setSelectedCarrier] = useState(carrierData?.carrier || null);
+  const [loading, setLoading] = useState(false);
+  const [selectedDriver, setSelectedDriver] = useState(""); // Track selected driver
 
-  // Fetch carriers from API
-  const fetchCarriers = async () => {
-    try {
-      const response = await apiService.getCarriers();
-      setCarriers(response.data);
-    } catch (err) {
-      console.error("Error fetching carriers:", err);
-    }
-  };
+  const { fetchCarriers } = useCarrierModal(setCarriers, setLoading);
 
   useEffect(() => {
-    fetchCarriers();
+    fetchCarriers(setCarriers, setLoading);
   }, []);
 
-  // Handle Carrier Selection
-  const handleCarrierChange = async (e) => {
-    const selectedCarrierId = e.target.value;
-    if (selectedCarrierId && selectedCarrierId !== "") {
-      try {
-        const response = await apiService.getCarrier(selectedCarrierId);
-        const transformedCarrierData = taransformCarrierData(response.data);
-        dispatch(setcarrierIds({ index, asset: transformedCarrierData }));
-        setSelectedDrivers(response.data.drivers || []);
-      } catch (err) {
-        toast.error("Error fetching carrier data");
-      }
+  const ChangeCarrier = (e) => {
+    const carrierId = e.target.value;
+    if (!carrierId) {
+      setSelectedCarrier(null);
+      setAssignDrivers([]);
     } else {
-      dispatch(setcarrierIds({ index, asset: initialcarrierIds }));
-      setSelectedDrivers([]);
+      const carrier = carriers.find((item) => item._id === carrierId);
+      setSelectedCarrier(carrier);
+      setAssignDrivers([]); // Reset assigned drivers
+      dispatch(setcarrierIds({ index, asset: { carrier, assignDrivers: [] } }));
     }
   };
 
-  // Handle Adding a New Driver
-  const handleAddDriver = () => {
-    setEditingDriver(null);
-    setShowAddDriverForm(true);
-  };
+  const AddDriver = () => {
+    if (!selectedDriver) return; // Prevent adding empty driver
 
-  const handleEditDriver = (driver, index) => {
-    setEditingDriver({ ...driver, index });
-    setShowAddDriverForm(true);
-  };
-
-  const handleDriverSubmit = async (driverData) => {
-    try {
-      if (!carrierIds?._id) {
-        toast.error("Please select a carrier first");
-        return;
-      }
-
-      const driverWithUUID = { ...driverData, driverId: uuidv4() };
-
-      // Call the separate API to add the driver
-      const response = await apiService.createDriver({
-        carrierId: carrierIds._id,
-        driver: driverWithUUID,
-      });
-     
-      if (response.success) {
-        setSelectedDrivers([...selectedDrivers, driverWithUUID]);
-        toast.success("Driver added successfully");
-        setShowAddDriverForm(false);
-      } else {
-        throw new Error(response.message || "Failed to add driver");
-      }
-    } catch (error) {
-      toast.error(error.message || "Failed to update driver information");
+    const driver = selectedCarrier?.drivers?.find((d) => d._id === selectedDriver);
+    if (driver && !assignDrivers.some((d) => d._id === driver._id)) {
+      const updatedDrivers = [...assignDrivers, driver];
+      setAssignDrivers(updatedDrivers);
+      dispatch(setcarrierIds({ index, asset: { carrier: selectedCarrier, assignDrivers: updatedDrivers } }));
     }
+    setSelectedDriver(""); // Reset selection
+  };
+
+  const removeDriver = (driverId) => {
+    const updatedDrivers = assignDrivers.filter((driver) => driver._id !== driverId);
+    setAssignDrivers(updatedDrivers);
+    dispatch(setcarrierIds({ index, asset: { carrier: selectedCarrier, assignDrivers: updatedDrivers } }));
   };
 
   return (
@@ -111,13 +67,7 @@ const Asset = ({ index, onRemove }) => {
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h6">Carrier {index + 1}</Typography>
         {onRemove && (
-          <Button
-            variant="outlined"
-            color="error"
-            startIcon={<IoIosTrash />}
-            onClick={() => onRemove(index)}
-            size="small"
-          >
+          <Button variant="outlined" color="error" startIcon={<IoIosTrash />} onClick={() => onRemove(index)} size="small">
             Remove
           </Button>
         )}
@@ -127,11 +77,8 @@ const Asset = ({ index, onRemove }) => {
         <Grid item xs={12}>
           <FormControl fullWidth>
             <InputLabel>Select Carrier</InputLabel>
-            <Select value={carrierIds?._id || ""} onChange={handleCarrierChange}>
+            <Select value={selectedCarrier?._id || ""} onChange={ChangeCarrier}>
               <MenuItem disabled value="">Select Carrier</MenuItem>
-              <MenuItem value="" onClick={() => setShowCarrierModal(true)}>
-                <IoIosAdd /> Create New Carrier
-              </MenuItem>
               {carriers.map((carrier) => (
                 <MenuItem key={carrier._id} value={carrier._id}>
                   {carrier.companyName} - {carrier.mcNumber}
@@ -142,49 +89,67 @@ const Asset = ({ index, onRemove }) => {
         </Grid>
       </Grid>
 
-      {carrierIds?._id && (
+      {/* Carrier Details & Drivers Section */}
+      {selectedCarrier && (
         <Box mt={2}>
           <Card>
             <CardContent>
-              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6">Drivers</Typography>
+              <Typography variant="h6">Carrier Details</Typography>
+              <Typography><b>Company Name:</b> {selectedCarrier.companyName}</Typography>
+              <Typography><b>MC Number:</b> {selectedCarrier.mcNumber}</Typography>
+
+              {/* Driver Selection Dropdown */}
+              <Box mt={2}>
+                {/* <Typography variant="h6">Assign Drivers</Typography> */}
+                <FormControl fullWidth>
+  <InputLabel>Select a Driver</InputLabel>
+  <Select value={selectedDriver} onChange={(e) => setSelectedDriver(e.target.value)}>
+    <MenuItem disabled value="">Select a Driver</MenuItem>
+    {selectedCarrier.drivers
+      ?.filter(driver => !assignDrivers.some(d => d._id === driver._id)) // ✅ Filter already assigned drivers
+      .map((driver) => (
+        <MenuItem key={driver._id} value={driver._id}>
+          {driver.driverName}
+        </MenuItem>
+      ))}
+  </Select>
+</FormControl>
+
                 <Button
-                  startIcon={<AddIcon />}
                   variant="contained"
                   color="primary"
-                  size="small"
-                  onClick={handleAddDriver}
+                  startIcon={<IoIosAdd />}
+                  onClick={AddDriver}
+                  sx={{ mt: 1 }}
                 >
-                  Add Driver
+                  Assign Driver
                 </Button>
               </Box>
 
-              <Grid container spacing={2}>
-                {selectedDrivers.map((driver, idx) => (
-                  <Grid item xs={12} key={idx}>
-                    <Card variant="outlined">
-                      <CardContent>
-                        <Box display="flex" justifyContent="space-between" alignItems="center">
-                          <Typography variant="subtitle1">
-                            Driver {idx + 1}: {driver.driverName}
-                          </Typography>
-                        </Box>
-                      </CardContent>
+              {/* Assigned Drivers List */}
+              <Box mt={2}>
+                <Typography variant="h6">Assigned Drivers</Typography>
+                {assignDrivers.length > 0 ? (
+                  assignDrivers.map((driver, idx) => (
+                    <Card variant="outlined" key={idx} sx={{ mt: 1, p: 1, display: "flex", justifyContent: "space-between" }}>
+                      <Box>
+                        <Typography><b>Driver {idx + 1}:</b> {driver.driverName}</Typography>
+                      </Box>
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        size="small"
+                        startIcon={<IoIosTrash />}
+                        onClick={() => removeDriver(driver._id)}
+                      >
+                        Remove
+                      </Button>
                     </Card>
-                  </Grid>
-                ))}
-              </Grid>
-
-              <Collapse in={showAddDriverForm}>
-                <Box mt={2} p={2} border={1} borderColor="divider" borderRadius={1}>
-                  <Typography variant="h6">{editingDriver ? 'Edit Driver' : 'Add New Driver'}</Typography>
-                  <DriverInfo
-                    driverData={editingDriver || {}}
-                    onSubmit={handleDriverSubmit}
-                    onCancel={() => setShowAddDriverForm(false)}
-                  />
-                </Box>
-              </Collapse>
+                  ))
+                ) : (
+                  <Typography>No drivers assigned</Typography>
+                )}
+              </Box>
             </CardContent>
           </Card>
         </Box>

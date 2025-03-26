@@ -22,6 +22,7 @@ import CustomerSection from './components/CustomerSection';
 import NotesSection from './components/NotesSection';
 import { generateInvoiceSchema } from '@/schema/auth/invoiceSchema';
 import LoadingSpinner from '@components/common/LoadingSpinner/LoadingSpinner';
+
 const InvoiceForm = ({ onSubmit ,initialData}) => {
   const [searchTerm] = useState(initialData?.loadNumber || '');
   const [attachments, setAttachments] = useState([]);
@@ -216,7 +217,7 @@ useEffect(() => {
           <Grid item xs={12}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
               <Button
-                startIcon={<Print />}
+                // startIcon={<Print />}
                 variant="outlined"
               >
                 Print

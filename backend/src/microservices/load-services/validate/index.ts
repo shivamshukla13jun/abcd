@@ -189,11 +189,14 @@ const DeliveryLocationSchema = Yup.array().of(
 
 // Driver Schema
 const DriverSchema = Yup.object().shape({
+  carrierId: Yup.string().required('Carrier ID is required'),
   driverName: Yup.string().required('Driver name is required'),
   driverPhone: Yup.string().required('Driver phone is required'),
   driverCDL: Yup.string().required('Driver CDL is required'),
   driverCDLExpiration: Yup.date().required('Driver CDL expiration is required'),
-  isActive: Yup.boolean().default(true)
+  isActive: Yup.boolean().default(true),
+  // driverId: Yup.string().required('Driver ID is required'),
+  
 });
 
 const VehicleSchema = Yup.object().shape({
@@ -240,6 +243,7 @@ const VehicleSchema = Yup.object().shape({
 
 // Carrier Schema
 const CarrierSchema = Yup.object().shape({
+  companyName:Yup.string().required('Compnay Name  is required'),
   mcNumber: Yup.string().required('MC Number is required'),
   usdot: Yup.string().required('USDOT Number is required'),
   address: Yup.string().required('Address is required'),

@@ -5,8 +5,25 @@ import Location from '../models/Location.model';
 import { AppError } from '../../../middlewares/error';
 import mongoose, { Types } from 'mongoose';
 import { FileService, MulterFile } from '../services/file.service';
-import { convertToArray } from 'src/libs';
+import { convertToArray, parseJSON } from 'src/libs';
 
+const parseLoadData = (req: Request, userId:any) => {
+  let loadData = { ...req.body, userId };
+  
+  if (loadData.items && typeof loadData.items === 'string') {
+    loadData.items = JSON.parse(loadData.items);
+  }
+  if (loadData.deletedfiles && typeof loadData.deletedfiles === 'string') {
+    loadData.deletedfiles = JSON.parse(loadData.deletedfiles);
+  }
+  
+
+  loadData.carrierIds = parseJSON(loadData.carrierIds);
+  loadData.pickupLocationId = convertToArray(loadData.pickupLocationId);
+  loadData.deliveryLocationId = convertToArray(loadData.deliveryLocationId);
+
+  return loadData;
+};
 /**
  * @description Create a new load with transaction
  * @type POST
@@ -16,29 +33,15 @@ const createLoad = async (req: Request, res: Response, next: NextFunction): Prom
   const session = await Load.startSession();
   session.startTransaction();
   const userId = res.locals.userId;
-  let loadData = { ...req.body, userId };
   try {
 
     // Parse the stringified fields
-    if (loadData.items && typeof loadData.items === 'string') {
-      loadData.items = JSON.parse(loadData.items);
-    }
-
-    // Convert comma-separated IDs to arrays
-    if (loadData.carrierIds && typeof loadData.carrierIds === 'string') {
-      loadData.carrierIds = loadData.carrierIds.split(',').filter(Boolean);
-    }
-    if (loadData.pickupLocationId && typeof loadData.pickupLocationId === 'string') {
-      loadData.pickupLocationId = loadData.pickupLocationId.split(',').filter(Boolean);
-    }
-    if (loadData.deliveryLocationId && typeof loadData.deliveryLocationId === 'string') {
-      loadData.deliveryLocationId = loadData.deliveryLocationId.split(',').filter(Boolean);
-    }
+  const userId = res.locals.userId;
+  const loadData=parseLoadData(req,userId)
 
     // Add uploaded files to documentUpload
     if (req.files?.length) {
       const files = req.files as MulterFile[]
-      
       loadData.files = files
     }
 
@@ -49,9 +52,9 @@ const createLoad = async (req: Request, res: Response, next: NextFunction): Prom
     }
 
     // Update related documents
-    if (loadData.carrierIds?.length) {
+    if (loadData.carrierIds) {
       await Carrier.updateMany(
-        { _id: { $in: loadData.carrierIds } },
+        { _id: { $in: loadData.carrierIds.carrier } },
         { $addToSet: { loads: load._id } },
         { session }
       );
@@ -335,23 +338,7 @@ const getLoadByloadNumber = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-const parseLoadData = (req: Request, userId:any) => {
-  let loadData = { ...req.body, userId };
-  
-  if (loadData.items && typeof loadData.items === 'string') {
-    loadData.items = JSON.parse(loadData.items);
-  }
-  if (loadData.deletedfiles && typeof loadData.deletedfiles === 'string') {
-    loadData.deletedfiles = JSON.parse(loadData.deletedfiles);
-  }
-  
 
-  loadData.carrierIds = convertToArray(loadData.carrierIds);
-  loadData.pickupLocationId = convertToArray(loadData.pickupLocationId);
-  loadData.deliveryLocationId = convertToArray(loadData.deliveryLocationId);
-
-  return loadData;
-};
 
 
 /**

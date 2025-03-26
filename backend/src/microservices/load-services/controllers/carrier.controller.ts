@@ -31,7 +31,20 @@ const createCarrier = async (req: Request, res: Response, next: NextFunction): P
  */
 const getAllCarriers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const carriers = await Carrier.find({});
+    const carriers = await Carrier.aggregate([
+      {
+        $match: {}
+      },
+      {
+        $lookup: {
+          from: 'drivers',
+          localField: '_id',
+          foreignField: 'carrierId',
+          as: 'drivers'
+        }
+      },
+     
+    ]);
     res.status(200).json({ data: carriers, success: true, statusCode: 200 });
   } catch (error) {
     next(error);

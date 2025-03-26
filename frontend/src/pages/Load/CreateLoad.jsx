@@ -35,6 +35,7 @@ const CreateLoad = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  console.log("freightCharge",freightCharge)
   const validateTabData = async (tabname) => {
     const validateData = {
         load: loadDetails,
@@ -42,37 +43,16 @@ const CreateLoad = () => {
         asset: carrierIds,
         pickup: pickupLocations,
         delivery: deliveryLocations,
+        document:{
           files: files,
-          items: items,
-          freightCharge: freightCharge
+        items: items,
+        freightCharge: freightCharge
+        }
         
     };
     return await validateLoadSchema(tabname, validateData[tabname]);
 };
-const saveCarrier = async () => {
-  try {
-    const savedCarriers = await Promise.all(
-      carrierIds.map(async (asset, index) => {
-        let response;
-        if (asset._id) {
-          response = await apiService.updateCarrier(asset._id, asset);
-        } else {
-          response = await apiService.createCarrier(asset);
-        }
-        // Merge server response with existing asset data
-        dispatch(setcarrierIds({ 
-          index, 
-          asset: { ...asset, ...response.data } 
-        }));
-        return response.data;
-      })
-    );
-    return savedCarriers;
-  } catch (err) {
-    console.error('Error saving carrier:', err);
-    throw err;
-  }
-};
+
 
   const savePickupLocations = async () => {
     try {
@@ -156,12 +136,8 @@ const saveCarrier = async () => {
 
     try {
         await Promise.all(tabs.map(validateTabData));
-
-        const customerResponse = customerInformation;
-        const carrierResponses = await saveCarrier();
         const pickupResponses = await savePickupLocations();
         const deliveryResponses = await saveDeliveryLocation();
-
         const formData = new FormData();
 
         // Add files
@@ -172,8 +148,8 @@ const saveCarrier = async () => {
         // Prepare load data
         const loadData = {
           ...loadDetails,
-          customerId: customerResponse._id,
-          carrierIds: carrierResponses.map((carrier) => carrier._id).join(','),
+          customerId: customerInformation._id,
+          carrierIds: carrierIds,
           pickupLocationId: pickupResponses.map((loc) => loc._id).join(','),
           deliveryLocationId: deliveryResponses.map((loc) => loc._id).join(','),
           items: items,

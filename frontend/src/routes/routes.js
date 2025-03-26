@@ -18,6 +18,7 @@ const Expenses = lazy(() => import('@pages/Accounting/Expenses'));
 const Ratings = lazy(() => import('@pages/Accounting/Ratings'));
 const NotAuthorized = lazy(() => import('@pages/NotAuthorized'));
 const NotFound = lazy(() => import('@pages/NotFound'));
+const Carrier = lazy(() => import('@pages/Carriers'));
 
 // Define roles
 export const Roles = {
@@ -87,6 +88,13 @@ const baseProtectedRoutes = [
     path: '/customers',
     element: Customers,
     title: 'Customers',
+    icon: 'users',
+    allowedRoles: [Roles.ADMIN, Roles.MANAGER],
+  },
+  {
+    path: '/carriers',
+    element: Carrier,
+    title: 'Carriers',
     icon: 'users',
     allowedRoles: [Roles.ADMIN, Roles.MANAGER],
   },

@@ -1,9 +1,5 @@
 import * as Yup from "yup";
 import { EquipmentType, LoadSize, LoadStatus, locationClasses } from "@data/Loads";
-const LoadStatudData=LoadStatus.map((item)=>item.name)
-const LoadSizeData=LoadSize.map((item)=>item.id)
-const EquipmentTypeData=EquipmentType.map((item)=>item.options.map((item)=>item.value))
-
 
 // Load Schema
 const LoadSchema = Yup.object().shape({
@@ -193,7 +189,7 @@ const documentUploadSchema = Yup.object().shape({
     })
     .min(1, 'At least one item is required'),
   
-  freightCharge: Yup.string()
+    freightCharge: Yup.string()
     .required('Freight charge terms are required')
     .oneOf(['Prepaid', 'Collect', '3rd Party'], 'Invalid freight charge option'),
   
@@ -225,16 +221,29 @@ const documentUploadSchema = Yup.object().shape({
 
 // Carrier Schema
 const CarrierSchema = Yup.array().of(
-    Yup.object().shape({
+  Yup.object().shape({
+    carrier: Yup.object().shape({
+      companyName: Yup.string().required('Company name is required'),
       mcNumber: Yup.string().required('MC Number is required'),
       usdot: Yup.string().required('USDOT Number is required'),
       address: Yup.string().required('Address is required'),
       primaryContact: Yup.string().required('Primary contact is required'),
       contactEmail: Yup.string().email('Must be a valid email address').required('Contact email is required'),
-      driverInfo:DriverSchema
-      
-    })
-  )
+    }),
+    assignDrivers: Yup.array().of(
+
+      Yup.object().shape({
+        carrierId: Yup.string().required('Carrier ID is required'),
+        driverName: Yup.string().required('Driver name is required'),
+        driverPhone: Yup.string().required('Driver phone is required'),
+        driverCDL: Yup.string().required('Driver CDL is required'),
+        driverCDLExpiration: Yup.date().required('Driver CDL expiration is required'),
+        isActive: Yup.boolean().default(true),
+      })
+    ),
+  })
+);
+
 const tabsSchema={
     "load":LoadSchema, "customer":CustomerSchema, "asset":CarrierSchema, "pickup":PickupLocationSchema,
    "delivery":DeliveryLocationSchema,
@@ -242,6 +251,7 @@ const tabsSchema={
 }
 const validateLoadSchema = async (tab, formData) => {
   try {
+    console.log("form data",formData)
     // Validate the form data using Yup schema for the specific tab
     await tabsSchema[tab].validate(formData, { abortEarly: false });
     return { isValid: true, error: null }; // No errors, return valid

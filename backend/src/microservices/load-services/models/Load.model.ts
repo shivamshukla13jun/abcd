@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, model } from 'mongoose';
+import mongoose, { Schema, Document, model, Types } from 'mongoose';
 import { AppError } from '../../../middlewares/error';
 import { FileService, MulterFile } from '../services/file.service';
 
@@ -60,6 +60,15 @@ export interface itemsProps{
   tax?: number;
   amount?: number;
 }
+export interface  carierProps{
+    carrier:mongoose.Types.ObjectId[],
+    assigndrivers: mongoose.Types.ObjectId[],
+    carrierExpense:[
+    {  value:number | string,
+      label:mongoose.Types.ObjectId}
+    ]
+   
+}
 
 export interface ILoad extends Document {
   loadNumber: string;
@@ -67,6 +76,11 @@ export interface ILoad extends Document {
   invoiceId: mongoose.Types.ObjectId;
   commodity: string;
   loadSize: LoadSize;
+  customerExpense:[
+    {  value:number | string,
+      label:mongoose.Types.ObjectId},
+      customerId:Types.ObjectId
+    ];
   declaredValue?: number;
   weight?: number;
   temperature?: number;
@@ -76,36 +90,17 @@ export interface ILoad extends Document {
   loadAmount: number;
   userId: mongoose.Types.ObjectId;
   customerId: mongoose.Types.ObjectId;
-  carrierIds: mongoose.Types.ObjectId[];
+  carrierIds:carierProps[];
   pickupLocationId: mongoose.Types.ObjectId[];
   deliveryLocationId: mongoose.Types.ObjectId[];
   files: any[];
   items: itemsProps[];
+  assigndrivers:mongoose.Types.ObjectId[];
   freightCharge: 'Prepaid' | 'Collect' | '3rd Party';
 }
 
 const LoadSchema: Schema = new Schema({
   loadNumber: { type: String, required: true, unique: true },
-  customerExpense: { 
-    rate: { type: Number, required: true },
-    lumperatshipper: { type: Number, required: true },
-    layover: { type: Number, required: true },
-    detention: { type: Number, required: true },
-    extramiles: { type: Number, required: true },
-    misc: { type: Number, required: true },
-    lumperatreciever: { type: Number, required: true },
-    customer: { type: mongoose.Types.ObjectId, ref: 'Customer', required: true },
-   },
-   carrierExpense:[{ 
-    rate: { type: Number, required: true },
-    lumperatshipper: { type: Number, required: true },
-    layover: { type: Number, required: true },
-    detention: { type: Number, required: true },
-    extramiles: { type: Number, required: true },
-    misc: { type: Number, required: true },
-    lumperatreciever: { type: Number, required: true },
-    carrier: { type: mongoose.Types.ObjectId, ref: 'Carrier', required: true },
-   }],
   status: { type: String, enum: Object.values(LoadStatus), default: LoadStatus.PENDING },
   commodity: { type: String, required: true },
   loadSize: { type: String, enum: Object.values(LoadSize), required: true },
@@ -118,8 +113,23 @@ const LoadSchema: Schema = new Schema({
   notes: { type: String },
   loadAmount: { type: Number, required: true },
   userId: { type: mongoose.Types.ObjectId, ref: 'User', required: true },
+  customerExpense:[
+    { value:{type: mongoose.Types, },
+    customerId:{ type: mongoose.Types.ObjectId, ref: 'Customer', required: true },
+     label:mongoose.Types.ObjectId,ref:"itemservice"}
+   ],
   customerId: { type: mongoose.Types.ObjectId, ref: 'Customer', required: true },
-  carrierIds: [{ type: mongoose.Types.ObjectId, ref: 'Carrier' }],
+  carrierIds: [
+    {
+      carrier:{type: mongoose.Types.ObjectId, ref: 'Carrier' },
+      assigndrivers: [{type: mongoose.Types.ObjectId, ref: 'Driver' }],
+      carrierExpense:[
+       { value:{type: mongoose.Types, },
+        label:mongoose.Types.ObjectId,ref:"itemservice"}
+      ]
+    }
+  ],
+  
   pickupLocationId: [{ type: mongoose.Types.ObjectId, ref: 'Location' }],
   deliveryLocationId: [{ type: mongoose.Types.ObjectId, ref: 'Location' }],
   // documentUpload: {
