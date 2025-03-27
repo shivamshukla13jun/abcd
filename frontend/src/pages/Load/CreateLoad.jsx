@@ -45,8 +45,8 @@ const CreateLoad = () => {
         delivery: deliveryLocations,
         document:{
           files: files,
-        items: items,
-        freightCharge: freightCharge
+        // items: items,
+        // freightCharge: freightCharge
         }
         
     };
@@ -153,8 +153,8 @@ const CreateLoad = () => {
           carrierIds: carrierIds,
           pickupLocationId: pickupResponses.map((loc) => loc._id).join(','),
           deliveryLocationId: deliveryResponses.map((loc) => loc._id).join(','),
-          items: items,
-          freightCharge: freightCharge
+          // items: items,
+          // freightCharge: freightCharge
         };
 
         // Add load data to FormData

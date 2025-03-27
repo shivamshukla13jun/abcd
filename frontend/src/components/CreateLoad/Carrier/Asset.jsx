@@ -1,40 +1,25 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { IoIosAdd, IoIosTrash } from "react-icons/io";
-import {
-  Button,
-  Grid,
-  Typography,
-  Box,
-  Select,
-  MenuItem,
-  InputLabel,
-  FormControl,
-  Card,
-  CardContent,
-  TextField,
-  Stack,
-  Paper,
-  IconButton,
-  FormControlLabel,
-  Checkbox
-} from "@mui/material";
+import {  IoIosTrash } from "react-icons/io";
+import { Button, Grid, Typography, Box, Select, MenuItem, InputLabel, FormControl, Card, TextField, Stack, Paper, Divider, InputAdornment, Tooltip, CircularProgress } from "@mui/material";
 import { useCarrierModal } from "@/hooks/useCarrierModal";
 import { setcarrierIds } from "@/redux/Slice/loadSlice";
-import { getServiceType } from '@/utils/getServicetype';
-import apiService from "@/service/apiService";
+import { Percent as PercentIcon } from '@mui/icons-material';
+import Expenses from "./CarrierExpenses";
 
 const Asset = ({ index, onRemove }) => {
   const dispatch = useDispatch();
   const carrierData = useSelector((state) => state.load.carrierIds[index]);
 
   const [carriers, setCarriers] = useState([]);
-  const [itemServices, setItemServices] = useState([]);
+
   const [assignDrivers, setAssignDrivers] = useState(carrierData?.assignDrivers || []);
   const [selectedCarrier, setSelectedCarrier] = useState(carrierData?.carrier || null);
   const [carrierExpenses, setCarrierExpenses] = useState(carrierData?.carrierExpense || []);
   const [loading, setLoading] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState("");
+  const [dispatchRate, setDispatchRate] = useState(carrierData?.dispatchRate || 0);
+  const [isCalculating, setIsCalculating] = useState(false);
 
   const { fetchCarriers } = useCarrierModal(setCarriers, setLoading);
 
@@ -42,73 +27,27 @@ const Asset = ({ index, onRemove }) => {
     const fetchData = async () => {
       try {
         await fetchCarriers(setCarriers, setLoading);
-        const itemServicesResponse = await apiService.getItemServices();
-        console.log("itemServicesResponse",itemServicesResponse)
-        setItemServices(itemServicesResponse.data);
+    
     } catch (err) {
         console.error('Error fetching data:', err);
       }
     };
     fetchData();
   }, []);
- console.log("itemServices",itemServices)
-  const handleAddExpense = () => {
-    const newExpense = {
-      value: '',
-      service: null,
-      positive: false,
-      desc: ""
-    };
-    const updatedExpenses = [...carrierExpenses, newExpense];
-    setCarrierExpenses(updatedExpenses);
-    updateCarrierData(selectedCarrier, assignDrivers, updatedExpenses);
+  const handleDispatchRateChange = (value) => {
+    const newValue = Math.min(100, Math.max(0, Number(value) || 0));
+    setDispatchRate(newValue);
+    updateCarrierData(selectedCarrier, assignDrivers, carrierExpenses, newValue);
   };
 
-  const handleExpenseChange = (index, field, value) => {
-    const updatedExpenses = [...carrierExpenses];
-
-    if (field === 'service') {
-      const selectedService = itemServices.find(service => service._id === value);
-      if (selectedService) {
-        updatedExpenses[index] = {
-          ...updatedExpenses[index],
-          service: selectedService._id,
-        };
-      }
-    } else if (field === 'value') {
-      updatedExpenses[index] = {
-        ...updatedExpenses[index],
-        value: value
-      };
-    } else if (field === 'positive') {
-      updatedExpenses[index] = {
-        ...updatedExpenses[index],
-        positive: value
-      };
-    } else if (field === 'desc') {
-      updatedExpenses[index] = {
-        ...updatedExpenses[index],
-        desc: value
-      };
-    }
-
-    setCarrierExpenses(updatedExpenses);
-    updateCarrierData(selectedCarrier, assignDrivers, updatedExpenses);
-  };
-
-  const handleRemoveExpense = (index) => {
-    const updatedExpenses = carrierExpenses.filter((_, idx) => idx !== index);
-    setCarrierExpenses(updatedExpenses);
-    updateCarrierData(selectedCarrier, assignDrivers, updatedExpenses);
-  };
-
-  const updateCarrierData = (carrier, drivers, expenses) => {
+  const updateCarrierData = (carrier, drivers, expenses, rate = dispatchRate) => {
     dispatch(setcarrierIds({
       index,
       asset: {
         carrier,
         assignDrivers: drivers,
-        carrierExpense: expenses
+        carrierExpense: expenses,
+        dispatchRate: rate
       }
     }));
   };
@@ -138,6 +77,49 @@ const Asset = ({ index, onRemove }) => {
   };
 
   const carrierInfo = carriers.find((c) => c._id === selectedCarrier);
+
+  const renderDispatchRateSection = () => (
+    <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default' }}>
+      <Box display="flex" alignItems="center" justifyContent="space-between">
+        <Typography variant="h6" gutterBottom>
+          Dispatch Rate
+        </Typography>
+        <Tooltip title="Percentage of the total load amount that goes to dispatch">
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <TextField
+              size="small"
+              type="number"
+              value={dispatchRate}
+              onChange={(e) => handleDispatchRateChange(e.target.value)}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <PercentIcon color="primary" />
+                  </InputAdornment>
+                ),
+                inputProps: { 
+                  min: 0, 
+                  max: 100,
+                  step: 0.1
+                }
+              }}
+              sx={{ width: '150px' }}
+            />
+            {isCalculating && (
+              <CircularProgress size={20} />
+            )}
+          </Box>
+        </Tooltip>
+      </Box>
+      {dispatchRate > 0 && (
+        <Box mt={1}>
+          <Typography variant="body2" color="text.secondary">
+            Current Rate: {dispatchRate}%
+          </Typography>
+        </Box>
+      )}
+    </Paper>
+  );
 
   return (
     <Card sx={{ mb: 2, p: 2 }}>
@@ -197,7 +179,13 @@ const Asset = ({ index, onRemove }) => {
                 
               </Grid>
             </Paper>
-            {/* divider add */}
+
+            {/* Add Dispatch Rate Section here */}
+            {renderDispatchRateSection()}
+
+            {/* Add matetial ui divider */}
+            <Divider sx={{ mt: 2, mb: 2  }}  />
+            
             {/* Driver Assignment Section */}
             <Box mt={2}>
               <FormControl fullWidth>
@@ -246,109 +234,7 @@ const Asset = ({ index, onRemove }) => {
             </Box>
 
             {/* Carrier Expenses Section */}
-            <Box>
-              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6" color="primary">
-                  Carrier Expenses
-                </Typography>
-                <Button
-                  variant="contained"
-                  startIcon={<IoIosAdd />}
-                  onClick={handleAddExpense}
-                  size="small"
-                >
-                  Add Expense
-                </Button>
-              </Box>
-
-              <Stack spacing={2}>
-                {carrierExpenses.map((expense, idx) => (
-                  <Paper 
-                    key={idx} 
-                    elevation={1}
-                    sx={{ 
-                      p: 2,
-                      '&:hover': {
-                        bgcolor: 'background.default'
-                      }
-                    }}
-                  >
-                    <Grid container spacing={2} alignItems="center">
-                      <Grid item xs={12} md={3}>
-                        <TextField
-                          select
-                          fullWidth
-                          size="small"
-                          label="Service"
-                          value={expense.service || ''}
-                          onChange={(e) => handleExpenseChange(idx, 'service', e.target.value)}
-                        >
-                          <MenuItem value="">Select Service</MenuItem>
-                          {itemServices.map((service) => (
-                            <MenuItem key={service._id} value={service._id}>
-                              {service.label}
-                            </MenuItem>
-                          ))}
-                        </TextField>
-                      </Grid>
-
-                      <Grid item xs={12} md={3}>
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <TextField
-                            fullWidth
-                            size="small"
-                            type={getServiceType(expense.service, itemServices) === "number" ? "number" : "text"}
-                            label="Value"
-                            value={expense.value || ''}
-                            onChange={(e) => handleExpenseChange(idx, 'value', e.target.value)}
-                          />
-                          <Box display="flex" alignItems="center" gap={1}>
-                            <FormControlLabel
-                              control={
-                                <Checkbox
-                                  checked={expense.positive === true}
-                                  onChange={() => handleExpenseChange(idx, 'positive', true)}
-                                />
-                              }
-                              label="+"
-                            />
-                            <FormControlLabel
-                              control={
-                                <Checkbox
-                                  checked={expense.positive === false}
-                                  onChange={() => handleExpenseChange(idx, 'positive', false)}
-                                />
-                              }
-                              label="-"
-                            />
-                          </Box>
-                        </Box>
-                      </Grid>
-
-                      <Grid item xs={12} md={5}>
-                        <TextField
-                          fullWidth
-                          size="small"
-                          label="Description"
-                          value={expense.desc || ''}
-                          onChange={(e) => handleExpenseChange(idx, 'desc', e.target.value)}
-                        />
-                      </Grid>
-
-                      <Grid item xs={12} md={1}>
-                        <IconButton
-                          color="error"
-                          onClick={() => handleRemoveExpense(idx)}
-                          size="small"
-                        >
-                          <IoIosTrash />
-                        </IconButton>
-                      </Grid>
-                    </Grid>
-                  </Paper>
-                ))}
-              </Stack>
-            </Box>
+             <Expenses {...{carrierExpenses,setCarrierExpenses,selectedCarrier ,updateCarrierData,assignDrivers }} />
           </>
         )}
       </Stack>

@@ -91,7 +91,7 @@ const DocumentUpload = () => {
         </ul>
       </div>
 
-      <div className="card p-3 mb-4">
+      {/* <div className="card p-3 mb-4">
         <h5>Freight Charge Terms</h5>
         <div className="d-flex">
           {['Prepaid', 'Collect', '3rd Party'].map((option) => (
@@ -186,7 +186,7 @@ const DocumentUpload = () => {
 
         <Button onClick={addItemRow}>Add New Row</Button>
         </div>
-      </div>
+      </div> */}
 
       {/* <div className="card p-3 mb-4">
         <Row>

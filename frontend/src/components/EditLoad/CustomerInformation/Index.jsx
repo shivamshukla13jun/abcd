@@ -11,15 +11,10 @@ import {
   Typography,
   TextField,
   MenuItem,
-  Button,
-  IconButton,
-  Radio,
-  RadioGroup,
-  FormControlLabel,
+
   Paper,
   Stack,
-  Divider,
-  Checkbox
+ 
 } from '@mui/material';
 import {
   Delete as DeleteIcon,
@@ -31,24 +26,21 @@ import {
   LocationOn as LocationIcon,
   Numbers as NumbersIcon
 } from '@mui/icons-material';
-import { getServiceType } from '@/utils/getServicetype';
+import CustomerExpense from './customerExpense';
 
 const CustomerInformation = () => {
   const dispatch = useDispatch();
-  const { customerInformation = {}, customerExpense = [] } = useSelector((state) => state.editload || {});
+  const { customerInformation = {}, } = useSelector((state) => state.editload || {});
   const [customers, setCustomers] = useState([]);
-  const [itemServices, setItemServices] = useState([]);
   const [showCustomerForm, setShowCustomerForm] = useState(false);
 
   // Fetch Customers and Item Services
   const fetchData = async () => {
     try {
-      const [customersResponse, itemServicesResponse] = await Promise.all([
+      const [customersResponse] = await Promise.all([
         apiService.getCustomers(),
-        apiService.getItemServices()
       ]);
       setCustomers(customersResponse.data);
-      setItemServices(itemServicesResponse.data);
     } catch (err) {
       console.error('Error fetching data:', err);
     }
@@ -74,66 +66,7 @@ const CustomerInformation = () => {
     }
   };
 
-  const handleAddExpense = () => {
-    const newExpense = {
-      customerId: customerInformation._id,
-      value: '',
-      service:null,
-      positive:false,
-      desc:""
-
-    };
-    dispatch(setCustomerExpense([...customerExpense, newExpense]));
-  };
-
- const handleExpenseChange = (index, field, value) => {
-  const updatedExpenses = [...customerExpense];
-
-  if (field === 'service') {
-    // Find the selected service and get its input type
-    const selectedService = itemServices.find(service => service._id === value);
-    if (selectedService) {
-      updatedExpenses[index] = {
-        ...updatedExpenses[index],
-        customerId: customerInformation._id,
-        service: selectedService._id, // Store service ID
-      };
-    }
-  }
-  if (!updatedExpenses[index].service) {
-    alert("Please select a service first.");
-    return;
-  }
-    if (field === 'value') {
-    updatedExpenses[index] = {
-      ...updatedExpenses[index],
-      value: value
-    };
-  } 
-  if(field === 'positive'){
-    updatedExpenses[index] = {
-      ...updatedExpenses[index],
-      positive: value
-    };
-  }
-  if(field=="desc"){
-    updatedExpenses[index] = {
-      ...updatedExpenses[index],
-      desc: value
-    };
-  }
-
-  dispatch(setCustomerExpense(updatedExpenses));
-};
-
-
-
  
-
-  const handleRemoveExpense = (index) => {
-    const updatedExpenses = customerExpense.filter((_, idx) => idx !== index);
-    dispatch(setCustomerExpense(updatedExpenses));
-  };
 
   const customerFields = [
     { icon: <BusinessIcon />, label: "Company Name", name: "company" },
@@ -213,116 +146,7 @@ const CustomerInformation = () => {
                 </Grid>
 
                 {/* Customer Expenses */}
-                <Box>
-                  <Box 
-                    display="flex" 
-                    justifyContent="space-between" 
-                    alignItems="center" 
-                    mb={2}
-                  >
-                    <Typography variant="h6" color="primary">
-                      Customer Expenses
-                    </Typography>
-                    <Button
-                      variant="contained"
-                      startIcon={<AddIcon />}
-                      onClick={handleAddExpense}
-                      size="small"
-                    >
-                      Add Expense
-                    </Button>
-                  </Box>
-
-                  <Stack spacing={2}>
-                    {customerExpense.map((expense, index) => (
-                      <Paper 
-                        key={index} 
-                        elevation={1}
-                        sx={{ 
-                          p: 2,
-                          '&:hover': {
-                            bgcolor: 'background.default'
-                          }
-                        }}
-                      >
-                        <Grid container spacing={2} alignItems="center">
-                          <Grid item xs={12} md={3}>
-                            <TextField
-                              select
-                              fullWidth
-                              size="small"
-                              label="Service"
-                              value={expense.service || ''}
-                              onChange={(e) => handleExpenseChange(index, 'service', e.target.value)}
-                            >
-                              <MenuItem value="">Select Service</MenuItem>
-                              {itemServices.map((service) => (
-                                <MenuItem key={service._id} value={service._id}>
-                                  {service.label}
-                                </MenuItem>
-                              ))}
-                            </TextField>
-                          </Grid>
-
-                          <Grid item xs={12} md={3}>
-                            <Box display="flex" alignItems="center" gap={1}>
-                            <TextField
-                              fullWidth
-                              size="small"
-                              type={getServiceType(expense.service,itemServices) === "number" ? "number" : "text"} 
-                              label="Value"
-                              value={expense.value || ''}
-                              onChange={(e) => handleExpenseChange(index, 'value', e.target.value)}
-                            />
-                            <Box display="flex" alignItems="center" gap={1}>
-  <FormControlLabel
-    control={
-      <Checkbox
-        checked={expense.positive === true}
-        onChange={() => handleExpenseChange(index, 'positive', true)}
-      />
-    }
-    label="+"
-  />
-  <FormControlLabel
-    control={
-      <Checkbox
-        checked={expense.positive === false}
-        onChange={() => handleExpenseChange(index, 'positive', false)}
-      />
-    }
-    label="-"
-  />
-</Box>
-
-
-                            </Box>
-                          </Grid>
-
-                          <Grid item xs={12} md={5}>
-                            <TextField
-                              fullWidth
-                              size="small"
-                              label="Description"
-                              value={expense.desc || ''}
-                              onChange={(e) => handleExpenseChange(index, 'desc', e.target.value)}
-                            />
-                          </Grid>
-
-                          <Grid item xs={12} md={1}>
-                            <IconButton
-                              color="error"
-                              onClick={() => handleRemoveExpense(index)}
-                              size="small"
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </Grid>
-                        </Grid>
-                      </Paper>
-                    ))}
-                  </Stack>
-                </Box>
+                <CustomerExpense />
               </>
             )}
           </Stack>

@@ -1,40 +1,23 @@
 import React, { useEffect, useState } from 'react'
 import {
-  Box, Grid, MenuItem, Paper, Stack, TextField, Typography, Button,
+  Box, Button, FormControlLabel, Grid, MenuItem, Paper, Stack, TextField, Typography, CardContent,
   IconButton,
-  Radio,
-  RadioGroup,
-  FormControlLabel,
-  Divider,
-  Checkbox
+
+  Checkbox,
 } from '@mui/material'
-import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material'
-import { useDispatch, useSelector } from 'react-redux';
-import { setCustomerExpense } from '@/redux/Slice/EditloadSlice';
-import { getServiceType } from '@/utils/getServicetype';
+import { IoIosAdd, IoIosTrash } from 'react-icons/io'
 import apiService from '@/service/apiService';
-const CustomerExpense = () => {
-  const dispatch = useDispatch();
-  const { customerInformation = {}, customerExpense = [],loadDetails={} } = useSelector((state) => state.editload || {});
+import { getServiceType } from '@/utils/getServicetype';
+import { useSelector } from 'react-redux';
+
+const Expenses = ({ carrierExpenses, setCarrierExpenses, selectedCarrier, updateCarrierData, assignDrivers }) => {
+  const { loadDetails = {} } = useSelector((state) => state.load || {});
+
   const [itemServices, setItemServices] = useState([]);
-  // Fetch item services 
   useEffect(() => {
     fetchItemServices();
   }, []);
-  const getSubtotal = () => {
-  const baseAmount =  0; // Ensure valid number
-  // const baseAmount = parseFloat(loadDetails.loadAmount) || 0; // Ensure valid number
-    const totalExpenses = customerExpense
-      .filter(expense => !isNaN(parseFloat(expense.value))) // Only valid numbers
-      .reduce((sum, expense) => {
-        const amount = parseFloat(expense.value);
-        return expense.positive ? sum + amount : sum - amount;
-      }, 0);
-  
-    return baseAmount + totalExpenses; // Adjust subtotal based on load amount
-  };
-  
-  // Fetch item services from the API
+
   const fetchItemServices = async () => {
     try {
       const itemServicesResponse = await apiService.getItemServices();
@@ -44,77 +27,77 @@ const CustomerExpense = () => {
       console.error('Error fetching data:', err);
     }
   };
-  // Add a new expense
+
   const handleAddExpense = () => {
     const newExpense = {
-      customerId: customerInformation._id,
       value: '',
       service: null,
       positive: false,
       desc: ""
-
     };
-    dispatch(setCustomerExpense([...customerExpense, newExpense]));
+    const updatedExpenses = [...carrierExpenses, newExpense];
+    setCarrierExpenses(updatedExpenses);
+    updateCarrierData(selectedCarrier, assignDrivers, updatedExpenses);
   };
-  // Handle expense change
+
   const handleExpenseChange = (index, field, value) => {
-    const updatedExpenses = [...customerExpense];
+    const updatedExpenses = [...carrierExpenses];
 
     if (field === 'service') {
-      // Find the selected service and get its input type
       const selectedService = itemServices.find(service => service._id === value);
       if (selectedService) {
         updatedExpenses[index] = {
           ...updatedExpenses[index],
-          customerId: customerInformation._id,
-          service: selectedService._id, // Store service ID
+          service: selectedService._id,
         };
       }
-    }
-    if (!updatedExpenses[index].service) {
-      alert("Please select a service first.");
-      return;
-    }
-    if (field === 'value') {
+    } else if (field === 'value') {
       updatedExpenses[index] = {
         ...updatedExpenses[index],
         value: value
       };
-    }
-    if (field === 'positive') {
+    } else if (field === 'positive') {
       updatedExpenses[index] = {
         ...updatedExpenses[index],
         positive: value
       };
-    }
-    if (field == "desc") {
+    } else if (field === 'desc') {
       updatedExpenses[index] = {
         ...updatedExpenses[index],
         desc: value
       };
     }
 
-    dispatch(setCustomerExpense(updatedExpenses));
+    setCarrierExpenses(updatedExpenses);
+    updateCarrierData(selectedCarrier, assignDrivers, updatedExpenses);
   };
-  // Remove an expense
+
   const handleRemoveExpense = (index) => {
-    const updatedExpenses = customerExpense.filter((_, idx) => idx !== index);
-    dispatch(setCustomerExpense(updatedExpenses));
+    const updatedExpenses = carrierExpenses.filter((_, idx) => idx !== index);
+    setCarrierExpenses(updatedExpenses);
+    updateCarrierData(selectedCarrier, assignDrivers, updatedExpenses);
+  };
+  const getSubtotal = () => {
+   const baseAmount =  0; // Ensure valid number
+  //  const baseAmount = parseFloat(loadDetails.loadAmount) || 0; // Ensure valid number
+    const totalExpenses = carrierExpenses
+      .filter(expense => !isNaN(parseFloat(expense.value))) // Only valid numbers
+      .reduce((sum, expense) => {
+        const amount = parseFloat(expense.value);
+        return expense.positive ? sum + amount : sum - amount;
+      }, 0);
+
+    return baseAmount + totalExpenses; // Adjust subtotal based on load amount
   };
   return (
     <Box>
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={2}
-      >
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h6" color="primary">
-          Customer Expenses
+          Carrier Expenses
         </Typography>
         <Button
           variant="contained"
-          startIcon={<AddIcon />}
+          startIcon={<IoIosAdd />}
           onClick={handleAddExpense}
           size="small"
         >
@@ -123,9 +106,9 @@ const CustomerExpense = () => {
       </Box>
 
       <Stack spacing={2}>
-        {customerExpense.map((expense, index) => (
+        {carrierExpenses.map((expense, idx) => (
           <Paper
-            key={index}
+            key={idx}
             elevation={1}
             sx={{
               p: 2,
@@ -142,7 +125,7 @@ const CustomerExpense = () => {
                   size="small"
                   label="Service"
                   value={expense.service || ''}
-                  onChange={(e) => handleExpenseChange(index, 'service', e.target.value)}
+                  onChange={(e) => handleExpenseChange(idx, 'service', e.target.value)}
                 >
                   <MenuItem value="">Select Service</MenuItem>
                   {itemServices.map((service) => (
@@ -161,14 +144,14 @@ const CustomerExpense = () => {
                     type={getServiceType(expense.service, itemServices) === "number" ? "number" : "text"}
                     label="Value"
                     value={expense.value || ''}
-                    onChange={(e) => handleExpenseChange(index, 'value', e.target.value)}
+                    onChange={(e) => handleExpenseChange(idx, 'value', e.target.value)}
                   />
                   <Box display="flex" alignItems="center" gap={1}>
                     <FormControlLabel
                       control={
                         <Checkbox
                           checked={expense.positive === true}
-                          onChange={() => handleExpenseChange(index, 'positive', true)}
+                          onChange={() => handleExpenseChange(idx, 'positive', true)}
                         />
                       }
                       label="+"
@@ -177,14 +160,12 @@ const CustomerExpense = () => {
                       control={
                         <Checkbox
                           checked={expense.positive === false}
-                          onChange={() => handleExpenseChange(index, 'positive', false)}
+                          onChange={() => handleExpenseChange(idx, 'positive', false)}
                         />
                       }
                       label="-"
                     />
                   </Box>
-
-
                 </Box>
               </Grid>
 
@@ -194,31 +175,30 @@ const CustomerExpense = () => {
                   size="small"
                   label="Description"
                   value={expense.desc || ''}
-                  onChange={(e) => handleExpenseChange(index, 'desc', e.target.value)}
+                  onChange={(e) => handleExpenseChange(idx, 'desc', e.target.value)}
                 />
               </Grid>
 
               <Grid item xs={12} md={1}>
                 <IconButton
                   color="error"
-                  onClick={() => handleRemoveExpense(index)}
+                  onClick={() => handleRemoveExpense(idx)}
                   size="small"
                 >
-                  <DeleteIcon />
+                  <IoIosTrash />
                 </IconButton>
               </Grid>
             </Grid>
           </Paper>
         ))}
-         <Typography variant="strong" sx={{ mt: 2, padding: 2 }} color="primary">
+        <Typography variant="strong" sx={{ mt: 2, padding: 2 }} color="primary">
           Sub Total:  <Typography variant="strong" sx={{ mt: 2, padding: 2 }} color="black">
             {getSubtotal()}
-          </  Typography> 
-      </Typography>
-      
+          </  Typography>
+        </Typography>
       </Stack>
     </Box>
   )
 }
 
-export default CustomerExpense
+export default Expenses

@@ -2,7 +2,7 @@ import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { publicRoutes, protectedRoutes } from './routes';
-import Layout from '@components/common/Layout';
+import Layout from '@components/common/layout/Layout';
 
 const LoadingFallback = () => (
   <div className="page-loader">

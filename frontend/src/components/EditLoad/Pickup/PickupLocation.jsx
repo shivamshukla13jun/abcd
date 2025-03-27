@@ -1,7 +1,7 @@
 // PickupLocation.jsx
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import CustomDatePicker from "@components/common/CommonDatePicker";
+import CustomDatePicker from "@/components/common/CommonDatePicker";
 import { CityDatabase, States } from "@data/cityDatabase";
 import { locationClasses, locationRequirement } from "@data/Loads";
 import { IoIosAdd, IoIosTrash } from "react-icons/io";

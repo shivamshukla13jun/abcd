@@ -21,7 +21,7 @@ import HeaderSection from './components/HeaderSection';
 import CustomerSection from './components/CustomerSection';
 import NotesSection from './components/NotesSection';
 import { generateInvoiceSchema } from '@/schema/auth/invoiceSchema';
-import LoadingSpinner from '@components/common/LoadingSpinner/LoadingSpinner';
+import LoadingSpinner from '@/components/common/LoadingSpinner/Index';
 
 const InvoiceForm = ({ onSubmit ,initialData}) => {
   const [searchTerm] = useState(initialData?.loadNumber || '');

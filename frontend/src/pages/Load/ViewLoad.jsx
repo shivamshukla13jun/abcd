@@ -35,8 +35,6 @@ const LOAD_STATUSES = [
 
 const ViewLoad = () => {
   const [activeTab, setActiveTab] = useState('allLoad');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState(null);
   const [loads, setLoads] = useState([]);

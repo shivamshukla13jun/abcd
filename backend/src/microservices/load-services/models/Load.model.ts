@@ -72,6 +72,7 @@ export interface ICarrierAssignment {
   carrier: Types.ObjectId;
   assignDrivers: Types.ObjectId[];
   carrierExpense: IExpenseItem[];
+  dispatchRate: number;
 }
 
 export interface ICustomerExpense extends IExpenseItem {
@@ -121,6 +122,7 @@ const CarrierAssignmentSchema = new Schema({
   carrier: { type: Schema.Types.ObjectId, ref: 'Carrier', required: true },
   assignDrivers: [{ type: Schema.Types.ObjectId, ref: 'Driver' }],
   carrierExpense: [CarrierExpenseSchema],
+  dispatchRate: { type: Number, min: 0, max: 100, default: 0 },
 }, { _id: false });
 
 const LoadItemSchema = new Schema({
