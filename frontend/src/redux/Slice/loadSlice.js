@@ -1,12 +1,7 @@
 import { initalLoadData } from "@redux/InitialData/Load";
 import { createSlice } from "@reduxjs/toolkit";
 
-const initialState = {
-  ...initalLoadData,
-  files: [],
-  items: [],
-  freightCharge: 'Prepaid'
-};
+const initialState = initalLoadData
 
 const loadSlice = createSlice({
   name: "load",
@@ -20,6 +15,14 @@ const loadSlice = createSlice({
       state.files.push(action.payload);
     },
     removeFile: (state, action) => {
+      // check removed file has a originalname
+      const fileToRemove = state.files[action.payload];
+      if (fileToRemove.originalname) {
+        // Get current deletedfiles array or initialize empty array
+        const currentDeletedFiles = state.deletedfiles || [];
+        // Add the originalname to deletedfiles array
+        state.deletedfiles = [...currentDeletedFiles, fileToRemove.filename];
+      }
       state.files = state.files.filter((_, index) => index !== action.payload);
     },
     setItems: (state, action) => {
@@ -37,7 +40,10 @@ const loadSlice = createSlice({
     setCustomerInformation: (state, action) => {
       state.customerInformation = action.payload;
     },
-    
+    setcarrierIds: (state, action) => {
+      const { index, asset } = action.payload;
+      state.carrierIds.splice(index, 1, asset); // Replace the item at `index` with `asset`
+    },
     setDeliveryInfo: (state, action) => {
       state.deliveryInfo = action.payload;
     },
@@ -72,36 +78,20 @@ const loadSlice = createSlice({
       state.pickupLocations[index] = pickup;
     },
     addPickupLocation: (state, action) => {
-      state.pickupLocations.push(action.payload);
+      state.pickupLocations.push(initialState.pickupLocations[0]);
     },
     removePickupLocation: (state, action) => {
       state.pickupLocations = state.pickupLocations.filter((_, index) => index !== action.payload);
     },
     updatePickupLocation: (state, action) => {
-      const { index, ...payload } = action.payload;
-      state.pickupLocations[index] = { 
-        ...state.pickupLocations[index],
-        ...payload 
-      };
+      state.pickupLocations[action.payload.index] = action.payload;
     },
-    
+    // update for multiple delivery location
     updateDeliveryLocation: (state, action) => {
-      const { index, ...payload } = action.payload;
-      state.deliveryLocations[index] = { 
-        ...state.deliveryLocations[index], 
-        ...payload 
-      };
-    },
-    
-    setcarrierIds: (state, action) => {
-      const { index, asset } = action.payload;
-      state.carrierIds[index] = { 
-        ...state.carrierIds[index], 
-        ...asset 
-      };
+      state.deliveryLocations[action.payload.index] = action.payload;
     },
     addDeliveryLocation: (state, action) => {
-      state.deliveryLocations.push(action.payload);
+      state.deliveryLocations.push(initialState.deliveryLocations[0]);
     },
     removeDeliveryLocation: (state, action) => {
       state.deliveryLocations = state.deliveryLocations.filter((_, index) => index !== action.payload);
@@ -111,7 +101,7 @@ const loadSlice = createSlice({
       state.carrierIds[action.payload.index] = action.payload;
     },
     addCarierLocation: (state, action) => {
-      state.carrierIds.push(action.payload);
+      state.carrierIds.push(initialState.carrierIds[0]);
     },
     removeCarierLocation: (state, action) => {
       state.carrierIds = state.carrierIds.filter((_, index) => index !== action.payload);
@@ -137,7 +127,17 @@ const loadSlice = createSlice({
     toggleDeliveryVisibility: (state) => {
       state.showDelivery = !state.showDelivery;
     },
+    // Inside your loadSlice reducers:
+initializeLoadData: (state, action) => {
+  return {
+    ...action.payload, // Merge with the incoming payload
+    activeTab: "load",
+  };
+},
     resetLoad: () => initialState,
+    setCustomerExpense: (state, action) => {
+      state.customerExpense = action.payload;
+    },
   },
 });
 
@@ -157,26 +157,27 @@ export const {
   setPickupVisibility,
   addPickupLocation,
   removePickupLocation,
+  
   resetLoad,
   setCustomerVisibility,
   togglecarrierIdsVisibility,
   setcarrierIdsVisibility,
   setDriverInfo,
   toggleDriverInfoVisibility,
-  setDriverInfoVisibility,
-  updatePickupLocation,
-  addDeliveryLocation,
-  setFiles,
+  setDriverInfoVisibility,updatePickupLocation,
+  addDeliveryLocation, setFiles,
   addFile,
   removeFile,
   setItems,
   updateCarierLocation,
   addCarierLocation,
   removeCarierLocation,
+
   addItem,
   setFreightCharge,
   removeDeliveryLocation,
-  updateDeliveryLocation
+  updateDeliveryLocation,initializeLoadData,
+  setCustomerExpense
 } = loadSlice.actions;
 
 export default loadSlice.reducer;

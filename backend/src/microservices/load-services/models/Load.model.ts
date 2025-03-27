@@ -63,7 +63,9 @@ export interface itemsProps {
 
 export interface IExpenseItem {
   value: number | string;
-  label: Types.ObjectId;
+  service: Types.ObjectId;
+  desc: string;
+  positive: boolean;
 }
 
 export interface ICarrierAssignment {
@@ -100,21 +102,25 @@ export interface ILoad extends Document {
   freightCharge: 'Prepaid' | 'Collect' | '3rd Party';
 }
 
-const ExpenseItemSchema = new Schema({
-  value: { type: Schema.Types.Mixed, required: true },
-  label: { type: Schema.Types.ObjectId, ref: 'ItemService', required: true }
-});
-
 const CustomerExpenseSchema = new Schema({
-  ...ExpenseItemSchema.obj,
+  value: { type: Schema.Types.Mixed, required: true },
+  desc: { type: Schema.Types.String },
+  positive: { type: Boolean, default: false },
+  service: { type: Schema.Types.ObjectId, ref: 'ItemService', required: true },
   customerId: { type: Schema.Types.ObjectId, ref: 'Customer', required: true }
-});
+}, { _id: false });
+
+const CarrierExpenseSchema = new Schema({
+  value: { type: Schema.Types.Mixed, required: true },
+  desc: { type: Schema.Types.String },
+  positive: { type: Boolean, default: false },
+  service: { type: Schema.Types.ObjectId, ref: 'ItemService', required: true }
+}, { _id: false });
 
 const CarrierAssignmentSchema = new Schema({
   carrier: { type: Schema.Types.ObjectId, ref: 'Carrier', required: true },
   assignDrivers: [{ type: Schema.Types.ObjectId, ref: 'Driver' }],
-  carrierExpense: [ExpenseItemSchema],
-  
+  carrierExpense: [CarrierExpenseSchema],
 }, { _id: false });
 
 const LoadItemSchema = new Schema({

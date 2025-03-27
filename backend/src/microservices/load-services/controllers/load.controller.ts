@@ -13,6 +13,9 @@ const parseLoadData = (req: Request, userId:any) => {
   if (loadData.items && typeof loadData.items === 'string') {
     loadData.items = JSON.parse(loadData.items);
   }
+  if (loadData.customerExpense && typeof loadData.customerExpense === 'string') {
+    loadData.customerExpense = JSON.parse(loadData.customerExpense);
+  }
   if (loadData.deletedfiles && typeof loadData.deletedfiles === 'string') {
     loadData.deletedfiles = JSON.parse(loadData.deletedfiles);
   }

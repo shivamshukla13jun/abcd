@@ -1,17 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-export interface IDriverInfo {
-  driver1Name: string;
-  driver2Name?: string;
-  driver1Phone: string;
-  driver2Phone?: string;
-  driver1CDL: string;
-  driver2CDL?: string;
-  driver1CDLExpiration: Date;
-  driver2CDLExpiration?: Date;
-  powerunit: string;
-  trailer: string;
-}
+
 
 export interface ICarrier extends Document {
   userId: mongoose.Types.ObjectId;
@@ -24,7 +13,6 @@ export interface ICarrier extends Document {
   usdot: string;
   primaryContact: string;
   contactEmail: string;
-  driverInfo: IDriverInfo;
   paymentMethods: string[];
   balance: number;
   rating: number;
@@ -44,19 +32,6 @@ const CarrierSchema: Schema = new Schema({
   usdot: { type: String, required: true },
   primaryContact: { type: String, required: true },
   contactEmail: { type: String, required: true },
-  driverInfo: {
-    driver1Name: { type: String, required: true },
-    driver2Name: { type: String },
-    driver1Phone: { type: String, required: true },
-    driver2Phone: { type: String },
-    driver1CDL: { type: String, required: true },
-    driver2CDL: { type: String },
-    driver1CDLExpiration: { type: Date, required: true },
-    driver2CDLExpiration: { type: Date },
-    powerunit: { type: String, required: true },
-    trailer: { type: String, required: true }
-    
-  },
   paymentMethods: [{
     type: String,
     enum: ['Credit Card', 'PayPal', 'Stripe'],

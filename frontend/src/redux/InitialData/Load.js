@@ -25,6 +25,7 @@ export const initalLoadData = {
     mcNumber: "",
     usdot: "",
   },
+  customerExpense:[],
   carrierIds: [
     {
       carrier:null,

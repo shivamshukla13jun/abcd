@@ -135,6 +135,9 @@ initializeLoadData: (state, action) => {
   };
 },
     resetLoad: () => initialState,
+    setCustomerExpense: (state, action) => {
+      state.customerExpense = action.payload;
+    },
   },
 });
 
@@ -173,8 +176,8 @@ export const {
   addItem,
   setFreightCharge,
   removeDeliveryLocation,
-  updateDeliveryLocation,initializeLoadData
-  
+  updateDeliveryLocation,initializeLoadData,
+  setCustomerExpense
 } = loadSlice.actions;
 
 export default loadSlice.reducer;

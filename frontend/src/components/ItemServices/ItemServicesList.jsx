@@ -115,7 +115,7 @@ const ItemServicesList = () => {
             <thead>
               <tr>
                 <th>Label</th>
-                <th>Value</th>
+                <th>Input Type</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -148,32 +148,33 @@ const ItemServicesList = () => {
 
         <Modal show={showModal} onHide={handleModalClose}>
           <Modal.Header closeButton>
-            <Modal.Title>{editingItem ? 'Edit Item Service' : 'Add New Item Service'}</Modal.Title>
+            <Modal.Title>{editingItem ? 'Edit' : 'Add New'}</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <Form onSubmit={handleSubmit(onSubmit)}>
-              {/* Amount Label Field */}
-              <Form.Group className="mb-3">
-                <Form.Label>Amount</Form.Label>
-                <Form.Control 
-                  type="text" 
-                  {...register('label')} 
-                  isInvalid={!!errors.label} 
-                  placeholder="Enter Amount"
-                />
-                <Form.Control.Feedback type="invalid">{errors.label?.message}</Form.Control.Feedback>
-              </Form.Group>
-
+              
               {/* Value Dropdown */}
               <Form.Group className="mb-3">
-                <Form.Label>Value</Form.Label>
+                <Form.Label>Service Input Type</Form.Label>
                 <Form.Select 
                   {...register('value')} 
                   onChange={(e) => setValue('value', e.target.value)}
                 >
                   <option value="string">String</option>
-                  <option value="number">Number</option>
+                  <option value="number">Integer</option>
                 </Form.Select>
+              </Form.Group>
+
+              {/* Amount Label Field */}
+              <Form.Group className="mb-3">
+                <Form.Label>Service Name</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  {...register('label')} 
+                  isInvalid={!!errors.label} 
+                  placeholder="Service Name"
+                />
+                <Form.Control.Feedback type="invalid">{errors.label?.message}</Form.Control.Feedback>
               </Form.Group>
 
               <div className="d-flex justify-content-end gap-2">

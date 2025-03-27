@@ -23,7 +23,7 @@ const CreateLoad = () => {
     activeTab, 
     loadDetails, 
     customerInformation, 
-    pickupLocations, 
+    pickupLocations, customerExpense,
     carrierIds,
      id,
     deliveryLocations,
@@ -148,6 +148,7 @@ const CreateLoad = () => {
         // Prepare load data
         const loadData = {
           ...loadDetails,
+          customerExpense,
           customerId: customerInformation._id,
           carrierIds: carrierIds,
           pickupLocationId: pickupResponses.map((loc) => loc._id).join(','),
