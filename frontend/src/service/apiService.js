@@ -149,7 +149,7 @@ const apiService = {
     return response.data;
   },
   // invoice service
-  generateInvoice: async (invoiceData) => {
+  generateInvoice: async (invoiceData,) => {
     const response = await api.post("/invoices/generate", invoiceData);
     return response.data;
   },
@@ -173,6 +173,37 @@ const apiService = {
     const response = await api.get(`/invoices/${id}/pdf`);
     return response.data;
   },
+  // genrarate carrier invoice
+  generateCarrierInvoice: async (invoiceData) => {
+    const response = await api.post("/carrierinvoice/generate", invoiceData);
+    return response.data;
+  },
+  // get carrier invoice
+  getCarrierInvoice: async (id) => {
+    const response = await api.get(`/carrierinvoice/${id}`);
+    return response.data;
+  },
+  // update carrier invoice
+  updateCarrierInvoice: async (id, invoiceData) => {
+    const response = await api.put(`/carrierinvoice/${id}`, invoiceData);
+    return response.data;
+  },
+  // get carrier invoices
+  getCarrierInvoices: async (keys) => {
+    const response = await api.get("/carrierinvoice", {params:keys});
+    return response.data;
+  },
+  // delete carrier invoice
+  deleteCarrierInvoice: async (id) => {
+    const response = await api.delete(`/carrierinvoice/${id}`);
+    return response.data;
+  },
+  // get carrier invoice pdf
+  getCarrierInvoicePdf: async (id) => {
+    const response = await api.get(`/carrierinvoice/${id}/pdf`);
+    return response.data;
+  }
+  ,
   getPaymentTerms: async () => {
     const response = await api.get("/payment-terms");
     return response.data;

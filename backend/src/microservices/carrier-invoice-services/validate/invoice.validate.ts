@@ -70,7 +70,10 @@ balanceDue: yup.number().transform((value, originalValue) => {
     }
     return value || 0;
   }).min(0).default(0),
-  customerId: yup.string().required('Customer ID is required'),
+  carrierExpense: yup
+  .array()
+  .default([]),
+  carrierId: yup.string().required('carrierId ID is required'),
   
 
 });

@@ -15,9 +15,11 @@ export const generateInvoice = async (req: Request, res: Response, next: NextFun
   await session.startTransaction();
   try {
     req.body=JSON.parse(req.body.invoiceData);
+    console.log("Body", req.body);
+    console.log("carrierId", req.body.carrierId);
     req.body = await generateInvoiceSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
     // consert req.body to json format
-    let { invoiceNumber, customerId, invoiceDate,tax, dueDate, location, terms, customerNotes, terms_conditions, discountPercent, deposit,paymentOptions, } = req.body;
+    let { invoiceNumber, carrierId, invoiceDate,tax, dueDate, location, terms, customerNotes, terms_conditions, discountPercent, deposit,paymentOptions, } = req.body;
     invoiceDate = new Date(invoiceDate);
     const files:MulterFile[] = req.files as MulterFile[] || [];
     dueDate = new Date(dueDate);
@@ -40,15 +42,19 @@ export const generateInvoice = async (req: Request, res: Response, next: NextFun
        });
     }
     // Get customerExpense from load's documentUpload
-    const customerExpense :IExpenseItem[]=req.body.customerExpense || existingLoad?.customerExpense || [];
-    existingLoad.customerExpense=customerExpense 
+    const customerExpense :IExpenseItem[]=req.body.carrierExpense 
+    existingLoad.carrierIds.forEach((carrier) => {
+      if (carrier.carrier.toString() === carrierId) {
+        carrier.carrierExpense = customerExpense;
+      }
+    });
     await existingLoad.save({ session });
 
     // Create invoice payload
     const invoicePayload = {
       userId: res.locals.userId,
       loadId: existingLoad._id,
-      customerId,
+      carrierId,
       paymentOptions,
       invoiceNumber,
       invoiceDate,
@@ -93,14 +99,14 @@ export const generatePDF = async (req: Request, res: Response, next: NextFunctio
     const invoice = await Invoice.findById(invoiceId)
       .populate('loadId')
       .populate('carrierId')
-      .populate('customerId');
+      .populate('carrierId');
 
     if (!invoice) {
       throw new AppError('Invoice not found', 404);
     }
 
     const load = await Load.findById(invoice.loadId)
-      .populate('customerId')
+      .populate('carrierId')
       .populate('carrierIds');
 
     if (!load) {
@@ -170,10 +176,10 @@ export const generatePDF = async (req: Request, res: Response, next: NextFunctio
 
 export const getInvoices = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { customerId, carrierId, status, startDate, endDate } = req.query;
+    const { carrierId, status, startDate, endDate } = req.query;
     
     const query: any = {};
-    if (customerId) query.customerId = customerId;
+    if (carrierId) query.carrierId = carrierId;
     if (carrierId) query.carrierId = carrierId;
     if (status) query.status = status;
     
@@ -199,7 +205,7 @@ export const getInvoices = async (req: Request, res: Response, next: NextFunctio
             {
               $lookup: {
                 from: 'customers',
-                localField: 'customerId',
+                localField: 'carrierId',
                 foreignField: '_id',
                 as: 'customer'
               }
@@ -228,7 +234,7 @@ export const getInvoices = async (req: Request, res: Response, next: NextFunctio
           customerName: '$load.customer.customerName',
           customerEmail: '$load.customer.email',
           customerAddress: '$load.customer.address',
-          customerId: '$load.customer._id',
+          carrierId: '$load.customer._id',
           // Calculate financial figures
           totalDiscount: { 
             $multiply: [
@@ -265,7 +271,7 @@ export const getInvoices = async (req: Request, res: Response, next: NextFunctio
           customerEmail: 1,
           customerAddress: 1,
           paymentOptions: 1,
-          customerId: 1,
+          carrierId: 1,
           loadId: 1,
           loadNumber: '$invoiceNumber',
           customerExpense: '$load.customerExpense',
@@ -299,7 +305,7 @@ export const getInvoiceById = async (req: Request, res: Response, next: NextFunc
     const invoice = await Invoice.findById(invoiceId)
       .populate('loadId')
       .populate('carrierId')
-      .populate('customerId');
+      .populate('carrierId');
     
     if (!invoice) {
       throw new AppError('Invoice not found', 404);
@@ -321,7 +327,7 @@ export const updateInvoice = async (req: Request, res: Response, next: NextFunct
     const { invoiceId } = req.params;
     req.body=JSON.parse(req.body.invoiceData);
     req.body = await generateInvoiceSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
-    let { invoiceNumber, customerId, invoiceDate, dueDate, location,tax, terms, customerNotes, terms_conditions, discountPercent, deposit, paymentOptions } = req.body;
+    let { invoiceNumber, carrierId, invoiceDate, dueDate, location,tax, terms, customerNotes, terms_conditions, discountPercent, deposit, paymentOptions } = req.body;
     invoiceDate = new Date(invoiceDate);
     dueDate = new Date(dueDate);
      const files:MulterFile[] = req.files as MulterFile[] || [];
@@ -351,7 +357,7 @@ export const updateInvoice = async (req: Request, res: Response, next: NextFunct
     const invoicePayload = {
       userId: res.locals.userId,
       loadId: existingLoad._id,
-      customerId,
+      carrierId,
       paymentOptions,
       tax,
       invoiceNumber,

@@ -65,7 +65,6 @@ export const generateInvoiceSchema = yup.object().shape({
       }
         return value;
       }),
-    customerId: yup.string().required('Customer ID is required'),
     files: yup.array().of(yup.object().shape({
       name: yup.string().required('File name is required'),
       preview: yup.string().required('File preview is required'),

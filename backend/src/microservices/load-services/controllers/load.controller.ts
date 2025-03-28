@@ -135,9 +135,123 @@ const getAllLoads = async (req: Request, res: Response, next: NextFunction): Pro
       },
       {
         $lookup: {
-          from: 'invoices',
-          localField: 'invoiceId',
-          pipeline:[
+          from: 'carriers',
+          localField: 'carrierIds.carrier',
+          
+          foreignField: '_id',
+          as: 'carrierDetails'
+        }
+      },
+       // Lookup drivers and temporarily store in "driverDetails"
+        {
+        $lookup: {
+          from: 'drivers',
+          localField: 'carrierIds.assignDrivers',
+          foreignField: '_id',
+          as: 'driverDetails'
+        }
+        },
+      
+     
+     
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'userId'
+        }
+      },
+     
+     
+  // Merge carriers into carrierIds array without overriding existing fields
+        {
+        $set: {
+        carrierIds: {
+        $map: {
+        input: "$carrierIds",
+        as: "carrier",
+        in: {
+        $mergeObjects: [
+          "$$carrier",
+          {
+            carrier: {
+              $arrayElemAt: [
+                {
+                  $filter: {
+                    input: "$carrierDetails",
+                    as: "c",
+                    cond: { $eq: ["$$c._id", "$$carrier.carrier"] }
+                  }
+                },
+                0
+              ]
+            }
+          },
+          {
+            assignDrivers: {
+              $map: {
+                input: "$$carrier.assignDrivers",
+                as: "driverId",
+                in: {
+                  $arrayElemAt: [
+                    {
+                      $filter: {
+                        input: "$driverDetails",
+                        as: "d",
+                        cond: { $eq: ["$$d._id", "$$driverId"] }
+                      }
+                    },
+                    0
+                  ]
+                }
+              }
+            }
+          }
+        ]
+        }
+        }
+        }
+        }
+        },
+
+     
+      {
+        $unwind: {
+          path: '$customerId',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $unwind: {
+          path: '$userId',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $unwind:{
+          path:"$carrierDetails",
+        }
+      },
+      // carrier invoice
+      {
+        $lookup: {
+          from: 'carrierinvoices',
+          let: { 
+            currentLoadId: '$_id',
+            currentCarrierId: '$carrierDetails._id'
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$loadId', '$$currentLoadId'] },
+                    { $eq: ['$carrierId', '$$currentCarrierId'] }
+                  ]
+                }
+              }
+            },
             {
               $lookup: {
                 from: 'loads',
@@ -203,19 +317,18 @@ const getAllLoads = async (req: Request, res: Response, next: NextFunction): Pro
                 // Include all fields that the form needs
                 _id: 1,
                 invoiceNumber: 1,
-                // invoiceDate: 1,
-                // convert date related docs to DD/YYYY/MM format
                 invoiceDate: { $dateToString: { format: '%m/%d/%Y', date: '$invoiceDate' } },
                 dueDate: { $dateToString: { format: '%m/%d/%Y', date: '$dueDate' } },
                 location: 1,
                 terms: 1,
+                carrierId: 1,
                 customerName: 1,
                 customerEmail: 1,
                 customerAddress: 1,
                 paymentOptions: 1,
                 customerId: 1,
                 loadId: 1,
-                loadNumber: '$invoiceNumber',
+                loadNumber: '$load.loadNumber',
                 items: '$load.items',
                 customerNotes: 1,
                 terms_conditions: 1,
@@ -230,115 +343,126 @@ const getAllLoads = async (req: Request, res: Response, next: NextFunction): Pro
               }
             }
           ],
-          foreignField: '_id',
-          as: 'invoice'
-        }
-      },
-     
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'userId',
-          foreignField: '_id',
-          as: 'userId'
+          as: 'carrierinvoices'
         }
       },
       {
-        $lookup: {
-          from: 'carriers',
-          localField: 'carrierIds.carrier',
-          
-          foreignField: '_id',
-          as: 'carrierDetails'
+        $unwind: {
+          path: '$carrierinvoices',
+          preserveNullAndEmptyArrays: true
         }
       },
-       // Lookup drivers and temporarily store in "driverDetails"
-        {
-        $lookup: {
-          from: 'drivers',
-          localField: 'carrierIds.assignDrivers',
-          foreignField: '_id',
-          as: 'driverDetails'
-        }
-        },
-     
-  // Merge carriers into carrierIds array without overriding existing fields
-        {
-        $set: {
-        carrierIds: {
-        $map: {
-        input: "$carrierIds",
-        as: "carrier",
-        in: {
-        $mergeObjects: [
-          "$$carrier",
-          {
-            carrier: {
-              $arrayElemAt: [
-                {
-                  $filter: {
-                    input: "$carrierDetails",
-                    as: "c",
-                    cond: { $eq: ["$$c._id", "$$carrier.carrier"] }
-                  }
-                },
-                0
-              ]
-            }
-          },
-          {
-            assignDrivers: {
-              $map: {
-                input: "$$carrier.assignDrivers",
-                as: "driverId",
-                in: {
-                  $arrayElemAt: [
-                    {
-                      $filter: {
-                        input: "$driverDetails",
-                        as: "d",
-                        cond: { $eq: ["$$d._id", "$$driverId"] }
-                      }
-                    },
-                    0
-                  ]
-                }
-              }
-            }
-          }
-        ]
-        }
-        }
-        }
-        }
-        },
-
-        // Remove temporary details after merging
-        {
+      // Remove temporary details after merging
+      {
         $unset: ["carrierDetails", "driverDetails"]
         },
-      {
-        $unwind: {
-          path: '$customerId',
-          preserveNullAndEmptyArrays: true
-        }
-      },
-      
-     
-      {
-        $unwind: {
-          path: '$invoice',
-          preserveNullAndEmptyArrays: true
-        }
-      },
-     
-      {
-        $unwind: {
-          path: '$userId',
-          preserveNullAndEmptyArrays: true
-        }
-      },
-     
+        {
+          $lookup: {
+            from: 'invoices',
+            localField: 'loadNumber',
+            pipeline:[
+              {
+                $lookup: {
+                  from: 'loads',
+                  localField: 'loadId',
+                  foreignField: '_id',
+                  pipeline: [
+                    {
+                      $lookup: {
+                        from: 'customers',
+                        localField: 'customerId',
+                        foreignField: '_id',
+                        as: 'customer'
+                      }
+                    },
+                    {
+                      $unwind: {
+                        path: '$customer',
+                        preserveNullAndEmptyArrays: true
+                      }
+                    }
+                  ],
+                  as: 'load'
+                }
+              },
+              {
+                $unwind: {
+                  path: '$load',
+                  preserveNullAndEmptyArrays: true
+                }
+              },
+              {
+                $addFields: {
+                  // Calculate subTotal from items array
+                  subTotal: { $sum: "$items.amount" },
+                  // Get customer details from load
+                  customerName: '$load.customer.customerName',
+                  customerEmail: '$load.customer.email',
+                  customerAddress: '$load.customer.address',
+                  customerId: '$load.customer._id',
+                  // Calculate financial figures
+                  totalDiscount: { 
+                    $multiply: [
+                      { $sum: "$items.amount" }, 
+                      { $divide: ['$discountPercent', 100] }
+                    ] 
+                  }
+                }
+              },
+              {
+                $addFields: {
+                  // Calculate final amounts
+                  totalAmount: { $subtract: ['$subTotal', '$totalDiscount'] },
+                  balanceDue: { 
+                    $subtract: [
+                      { $subtract: ['$subTotal', '$totalDiscount'] }, 
+                      '$deposit'
+                    ] 
+                  }
+                }
+              },
+              {
+                $project: {
+                  // Include all fields that the form needs
+                  _id: 1,
+                  invoiceNumber: 1,
+                  // invoiceDate: 1,
+                  // convert date related docs to DD/YYYY/MM format
+                  invoiceDate: { $dateToString: { format: '%m/%d/%Y', date: '$invoiceDate' } },
+                  dueDate: { $dateToString: { format: '%m/%d/%Y', date: '$dueDate' } },
+                  location: 1,
+                  terms: 1,
+                  customerName: 1,
+                  customerEmail: 1,
+                  customerAddress: 1,
+                  paymentOptions: 1,
+                  customerId: 1,
+                  loadId: 1,
+                  loadNumber: '$invoiceNumber',
+                  items: '$load.items',
+                  customerNotes: 1,
+                  terms_conditions: 1,
+                  discountPercent: 1,
+                  deposit: 1,
+                  subTotal: 1,
+                  totalDiscount: 1,
+                  totalAmount: 1,
+                  balanceDue: 1,
+                  status: 1,
+                  freightCharge: 1,
+                }
+              }
+            ],
+            foreignField: 'invoiceNumber',
+            as: 'invoice'
+          }
+        },
+        {
+          $unwind: {
+            path: '$invoice',
+            preserveNullAndEmptyArrays: true
+          }
+        },
       {
         $sort: { loadNumber: 1 }
       },

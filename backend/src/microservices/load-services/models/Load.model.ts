@@ -106,7 +106,6 @@ const CustomerExpenseSchema = new Schema({
   desc: { type: Schema.Types.String },
   positive: { type: Boolean, default: false },
   service: { type: Schema.Types.ObjectId, ref: 'ItemService', required: true },
-  customerId: { type: Schema.Types.ObjectId, ref: 'Customer', required: true }
 }, { _id: false });
 
 const CarrierExpenseSchema = new Schema({

@@ -91,7 +91,11 @@ const ViewLoad = () => {
   const handleCreateInvoice = async (data) => {
     try {
       console.log("create invlice",data)
-      await apiService.generateInvoice(data);
+      if(invoiceType === 'customer'){
+       await apiService.generateInvoice(data);
+      }else{
+        await apiService.generateCarrierInvoice(data);
+      }
       toast.success('Invoice created successfully');
       setShowInvoiceModal(false);
     } catch (error) {
@@ -103,7 +107,11 @@ const ViewLoad = () => {
   const handleEditInvoice = async (data) => {
     try {
       console.log("edit invlice",{data,editingInvoice:editingInvoice})
+      if(invoiceType === 'customer'){
       await apiService.updateInvoice(editingInvoice._id, data);
+      }else{
+        await apiService.updateCarrierInvoice(editingInvoice._id, data);
+      }
       toast.success('Invoice updated successfully');
       setShowInvoiceModal(false);
     } catch (error) {
@@ -119,10 +127,16 @@ const ViewLoad = () => {
 
   const handleInvoiceClick = (type, load) => {
     setInvoiceType(type);
+    let data = {};
+    console.log("type",type)
     if (load.invoice && type === 'customer') {
       setEditingInvoice({...load.invoice, loadNumber: load.loadNumber});
     } else {
-      setEditingInvoice({ loadNumber: load.loadNumber,carrierId:load.carrierIds.map(({carrier})=>carrier._id), invoiceNumber: load.loadNumber });
+      if(load.carrierinvoices){
+        data=load.carrierinvoices;
+      }
+      console.log("data",data)
+      setEditingInvoice({...data, loadNumber: load.loadNumber,carrierId:load.carrierIds.map(({carrier})=>carrier._id), invoiceNumber: load.loadNumber });
     }
     setShowInvoiceModal(true);
   };

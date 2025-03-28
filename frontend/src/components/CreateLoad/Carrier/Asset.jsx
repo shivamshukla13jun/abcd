@@ -10,6 +10,7 @@ import Expenses from "./CarrierExpenses";
 const Asset = ({ index, onRemove }) => {
   const dispatch = useDispatch();
   const carrierData = useSelector((state) => state.load.carrierIds[index]);
+  console.log("Carrier data", carrierData);
   const [carriers, setCarriers] = useState([]);
   const [powerunit, setPowerunit] = useState(carrierData?.powerunit || "");
   const [trailer, setTrailer] = useState(carrierData?.trailer || "");
@@ -40,7 +41,7 @@ const Asset = ({ index, onRemove }) => {
     updateCarrierData(selectedCarrier, assignDrivers, carrierExpenses, newValue,powerunit,trailer);
   };
 
-  const updateCarrierData = (carrier, drivers, expenses, rate = dispatchRate,powerunit,trailer) => {
+  const updateCarrierData = (carrier, drivers, expenses, rate, powerUnitValue=powerunit, trailerValue=trailer) => {
     dispatch(setcarrierIds({
       index,
       asset: {
@@ -48,12 +49,12 @@ const Asset = ({ index, onRemove }) => {
         assignDrivers: drivers,
         carrierExpense: expenses,
         dispatchRate: rate,
-        powerunit,
-        trailer
+        powerunit: powerUnitValue,  // Ensure correct update
+        trailer: trailerValue,      // Ensure correct update
       },
-
     }));
   };
+  
 
   const ChangeCarrier = (e) => {
     const carrierId = e.target.value;
@@ -62,7 +63,18 @@ const Asset = ({ index, onRemove }) => {
     setCarrierExpenses([]);
     updateCarrierData(carrierId, [], [], 0,0,0);
   };
-
+  const handlePowerUnitChange = (e) => {
+    const value = e.target.value;
+    setPowerunit(value);
+    updateCarrierData(selectedCarrier, assignDrivers, carrierExpenses, dispatchRate, value, trailer);
+  };
+  
+  const handleTrailerChange = (e) => {
+    const value = e.target.value;
+    setTrailer(value);
+    updateCarrierData(selectedCarrier, assignDrivers, carrierExpenses, dispatchRate, powerunit, value);
+  };
+  
   const AddDriver = (e) => {
     let value=e.target.value
     if (!value) return;
@@ -187,8 +199,8 @@ const Asset = ({ index, onRemove }) => {
                     fullWidth
                     size="small"
                     // label="Power Unit"
-                    value={(e)=>setPowerunit(e.target.value)}
-                    onChange={(e) => updateCarrierData(selectedCarrier, assignDrivers, carrierExpenses, dispatchRate,powerunit,trailer)}
+                    value={powerunit}
+                    onChange={handlePowerUnitChange}
                   />
                   </Grid>
                   <Grid item xs={12} md={4}>
@@ -198,8 +210,8 @@ const Asset = ({ index, onRemove }) => {
                     fullWidth
                     size="small"
                     // label="Trailer"
-                    value={(e)=>setTrailer(e.target.value)} 
-                    onChange={(e) => updateCarrierData(selectedCarrier, assignDrivers, carrierExpenses, dispatchRate, powerunit,trailer)}
+                    value={trailer}
+                    onChange={handleTrailerChange}
                   />
                   </Grid>
                 

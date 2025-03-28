@@ -223,7 +223,7 @@ const documentUploadSchema = Yup.object().shape({
 const CarrierSchema = Yup.array().of(
   Yup.object().shape({
     carrier: Yup.string().required('Carrier ID is required'),
-    assignDrivers: Yup.array().of(Yup.string()).min(1).default([]),
+    assignDrivers: Yup.array().of(Yup.string()).default([]),
   })
 );
 

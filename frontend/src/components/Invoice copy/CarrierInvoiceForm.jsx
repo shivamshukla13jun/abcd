@@ -25,6 +25,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner/Index';
 
 const CarrierInvoiceForm = ({ onSubmit, initialData }) => {
   const[currenttime,setCurrentTime]=useState(Date.now());
+  console.log("initialData",initialData)
   const [searchTerm] = useState(initialData?.loadNumber || '');
   const [attachments, setAttachments] = useState([]);
   const [TAX_OPTIONS, setTAX_OPTIONS] = useState([]);
@@ -49,7 +50,12 @@ const CarrierInvoiceForm = ({ onSubmit, initialData }) => {
     formState: { errors } 
   } = useForm({
     resolver: yupResolver(generateInvoiceSchema),
-    defaultValues: initialData || initialinvoiceData
+    defaultValues: initialData && Object.keys(initialData).length > 4 
+      ? initialData 
+      : {
+          ...initialinvoiceData,
+          tax: '' // Add default empty string for tax
+        }
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -72,20 +78,23 @@ const CarrierInvoiceForm = ({ onSubmit, initialData }) => {
       try {
         const response = await apiService.getTaxOptions();
         setTAX_OPTIONS(response.data);
+        // Set default tax value if not already set
+        // if (!watch('tax') && response.data.length > 0) {
+        //   setValue('tax', response.data[0]._id);
+        // }
       } catch (error) {
         console.error('Error fetching tax options:', error);
       }
     };
     fetchTaxOptions();
-  }, []);
+  }, [setValue, watch]);
 
   // Calculate totals
   const getSubtotal = () => {
     const loadAmount = parseFloat(watch("loadAmount")) || 0;
-    console.log(" before loadAmount baseAmount",loadAmount)
     const dispatchRate = parseFloat(watch("dispatchRate")) || 0; // Ensure valid number
    const baseAmount=(dispatchRate/100)*loadAmount
-   console.log(" after baseAmount",baseAmount)
+   
     const totalExpenses = fields.reduce((sum, expense) => {
       const amount = parseFloat(expense.value) || 0;
       return expense.positive ? sum + amount : sum - amount;
@@ -150,7 +159,7 @@ const CarrierInvoiceForm = ({ onSubmit, initialData }) => {
             customerEmail: carrierData?.contactEmail,
             customerName: carrierData?.companyName,
             customerAddress: carrierData?.address,
-            customerId: carrierData?._id,
+            carrierId: carrierData?._id,
             carrierExpense: carrierExpenses,
             loadAmount: loadData.loadAmount,
             dispatchRate: loadData.carrierIds?.[0]?.dispatchRate || 0,
@@ -168,9 +177,30 @@ const CarrierInvoiceForm = ({ onSubmit, initialData }) => {
     };
     fetchLoadDetails();
   }, [debouncedSearchTerm, reset]);
-
-  const handleFormSubmit = async (data) => {
+ useEffect(()=>{
+   if(initialData && Object.keys(initialData).length > 4 ){
+    setValue('invoiceDate', initialData.invoiceDate);
+    setValue('dueDate', initialData.dueDate);
+    setValue('location', initialData.location);
+    setValue('loadNumber', initialData.loadNumber);
+    setValue('terms', initialData.terms);
+    setValue('discountPercent', initialData.discountPercent);
+    setValue('paymentOptions', initialData.paymentOptions);
+    setValue('deposit', initialData.deposit);
+    setValue('tax', initialData.tax);
+ 
+   }
+ },[initialData])
+ console.log("initialData",initialData)
+  const handleFormSubmit = async (data, e) => {
     try {
+      e.preventDefault(); // Prevent default form submission
+      console.log('Form submission started', data);
+      
+      if (!onSubmit) {
+        throw new Error('onSubmit handler is not provided');
+      }
+
       const formData = new FormData();
       const invoiceData = {
         ...data,
@@ -180,6 +210,7 @@ const CarrierInvoiceForm = ({ onSubmit, initialData }) => {
         }))
       };
 
+      console.log('Prepared invoice data:', invoiceData);
       formData.append("invoiceData", JSON.stringify(invoiceData));
       
       attachments.forEach(attachment => {
@@ -189,15 +220,16 @@ const CarrierInvoiceForm = ({ onSubmit, initialData }) => {
       });
 
       await onSubmit(formData);
+      toast.success('Form submitted successfully');
     } catch (error) {
       console.error("Submission error:", error);
-      toast.error(error.message);
+      toast.error(error.message || 'Failed to submit form');
     }
   };
-
+console.log({errors})
   return (
     <Paper elevation={3} sx={{ p: 3 }}>
-      <form onSubmit={handleSubmit(handleFormSubmit)}>
+      <form noValidate onSubmit={(e) => handleSubmit((data) => handleFormSubmit(data, e))(e)}>
         {loading ? <LoadingSpinner /> : (
           <Grid container spacing={3}>
             <Grid item xs={6}>
@@ -265,6 +297,7 @@ const CarrierInvoiceForm = ({ onSubmit, initialData }) => {
                   type="submit"
                   variant="contained"
                   startIcon={<Send />}
+                  disabled={loading || Object.keys(errors).length > 0}
                 >
                   Save and Send
                 </Button>
