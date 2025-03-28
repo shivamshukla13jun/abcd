@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { setCustomerInformation, toggleCustomerVisibility, setCustomerExpense } from '@redux/Slice/loadSlice';
+import { setCustomerInformation, toggleCustomerVisibility, setCustomerExpense, setCustomerRate } from '@redux/Slice/loadSlice';
 import apiService from '@service/apiService';
 import AddCustomer from '@/components/Customers/AddCustomer';
 import {
@@ -30,7 +30,7 @@ import CustomerExpense from './customerExpense';
 
 const CustomerInformation = () => {
   const dispatch = useDispatch();
-  const { customerInformation = {}, } = useSelector((state) => state.load || {});
+  const { customerInformation = {},customerRate=0 } = useSelector((state) => state.load || {});
   const [customers, setCustomers] = useState([]);
   const [showCustomerForm, setShowCustomerForm] = useState(false);
 
@@ -143,6 +143,34 @@ const CustomerInformation = () => {
                       </Paper>
                     </Grid>
                   ))}
+                  {/* customer rate field add changeable  */}
+                  <Grid item xs={12} md={3}>
+                    <Paper 
+                      elevation={0} 
+                      sx={{ 
+                        p: 2, 
+                        bgcolor: 'background.default',
+                        height: '100%'
+                      }}
+                    >
+                      <Stack spacing={1}>
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <NumbersIcon />
+                          <Typography variant="caption" color="textSecondary">
+                            Rate
+                          </Typography>
+                        </Box>
+                        <TextField
+                          fullWidth
+                          size="small"
+                          value={customerRate || 0}
+                          onChange={(e) => dispatch(setCustomerRate(e.target.value))}
+                          // InputProps={{ readOnly: true }}
+                          variant="outlined"
+                        />
+                      </Stack>
+                    </Paper>
+                    </Grid>
                 </Grid>
 
                 {/* Customer Expenses */}

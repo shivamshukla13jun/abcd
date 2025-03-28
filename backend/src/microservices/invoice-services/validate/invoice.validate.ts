@@ -34,7 +34,10 @@ export const generateInvoiceSchema = yup.object().shape({
     }
     return value;
   }),
-  deletedfiles: yup.string().optional(),
+  customerExpense: yup
+  .array()
+  .default([]),
+  deletedfiles: yup.array().default([]),
   customerNotes: yup.string(),
   terms_conditions: yup.string(),
   discountPercent:  yup.number().transform((value, originalValue) => {
@@ -68,6 +71,6 @@ balanceDue: yup.number().transform((value, originalValue) => {
     return value || 0;
   }).min(0).default(0),
   customerId: yup.string().required('Customer ID is required'),
-  loadId: yup.string().required('Load ID is required'),
+  
 
 });

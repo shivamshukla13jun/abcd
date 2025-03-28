@@ -43,7 +43,7 @@ const EditLoad = () => {
     carrierIds,
     driverInfo,
     deliveryLocations,
-    files,
+    files,customerRate,
     items,
     freightCharge,
   } = useSelector((state) => state.editload);
@@ -154,7 +154,8 @@ const EditLoad = () => {
       // Prepare load data
       const loadData = {
         ...loadDetails,
-        customerExpense,
+        
+        customerExpense,customerRate:customerRate || 0,
         customerId: customerInformation._id,
         carrierIds: carrierIds,
         pickupLocationId: pickupResponses.map((loc) => loc._id).join(','),
@@ -289,7 +290,8 @@ const EditLoad = () => {
                   dispatch(setActiveTab(tabs[currentIndex + 1]));
                 }
               }}
-              disabled={isSubmitting}
+              disabled={  isSubmitting}
+
             >
               {
                 activeTab === "document"? "Save":isSubmitting?"Saving...":"Next"

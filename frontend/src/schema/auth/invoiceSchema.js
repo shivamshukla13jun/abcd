@@ -9,28 +9,62 @@ export const generateInvoiceSchema = yup.object().shape({
     customerName: yup.string().required('Customer name is required'),
     customerEmail: yup.string().email('Invalid email').required('Customer email is required'),
     customerAddress: yup.string().required('Customer address is required'),
-    items: yup.array().of(
+    customerRate: yup.number().default(0),
+    tax: yup.string(),
+    customerExpense: yup.array().of(
       yup.object().shape({
-        itemDetails: yup.string().required('Item details are required'),
-        description: yup.string(),
-        qty: yup.number().required('Quantity is required').min(0).default(0),
-        rate: yup.number().required('Rate is required').min(0).default(0),
-        discount: yup.number().min(0).default(0),
-        tax: yup.number().min(0).max(100).default(0), // Tax as number
-        amount: yup.number().min(0).default(0)
+        service: yup.string().required('Expense type is required'),
+        value: yup.mixed().required('value is required'),
+        desc: yup.string(),
+        positive: yup.boolean()
       })
-    ).transform((value, originalValue) => {
-      if(typeof value === 'string'){
-        return JSON.parse(value);
-      }
-      return value;
-    }),
+    ).default([]).notRequired(),
+    // items: yup.array().of(
+    //   yup.object().shape({
+    //     itemDetails: yup.string().required('Item details are required'),
+    //     description: yup.string(),
+    //     qty: yup.number().required('Quantity is required').min(0).default(0),
+    //     rate: yup.number().required('Rate is required').min(0).default(0),
+    //     discount: yup.number().min(0).default(0),
+    //     tax: yup.number().min(0).max(100).default(0), // Tax as number
+    //     amount: yup.number().min(0).default(0)
+    //   })
+    // ).transform((value, originalValue) => {
+    //   if(typeof value === 'string'){
+    //     return JSON.parse(value);
+    //   }
+    //   return value;
+    // }),
     customerNotes: yup.string(),
     terms_conditions: yup.string(),
-    discountPercent: yup.number().min(0).max(100).default(0),
-    deposit: yup.number().min(0).default(0),
-    totalAmount: yup.number().min(0).default(0),
-    balanceDue: yup.number().min(0).default(0),
+    discountPercent: yup.number().min(0).max(100).default(0).transform((value, originalValue) => {
+    //  NAN check
+    if (isNaN(value)) {
+      return 0; // default value
+    }
+      return value;
+    }),
+    deposit: yup.number().min(0).default(0).transform((value, originalValue) => {
+      //  NAN check
+      if (isNaN(value)) {
+        return 0; // default value
+      }
+        return value;
+      }),
+    totalAmount: yup.number().min(0).default(0).transform((value, originalValue) => {
+      //  NAN check
+      if (isNaN(value)) {
+        return 0; // default value
+      }
+        return value;
+      }),
+    balanceDue: yup.number().min(0).default(0).transform((value, originalValue) => {
+      //  NAN check
+      if (isNaN(value)) {
+        return 0; // default value
+      }
+        return value;
+      }),
     customerId: yup.string().required('Customer ID is required'),
     files: yup.array().of(yup.object().shape({
       name: yup.string().required('File name is required'),

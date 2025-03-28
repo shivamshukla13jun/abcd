@@ -1,52 +1,48 @@
 import { Request, Response, NextFunction } from 'express';
 import Invoice from './Invoice.model';
-import Load, { itemsProps } from '../load-services/models/Load.model';
+import Load, { IExpenseItem } from '../load-services/models/Load.model';
 import * as pdf from 'html-pdf';
 import * as ejs from 'ejs';
 import path from 'path';
 import mongoose from 'mongoose';
 import { AppError } from '../../middlewares/error';
 import { FileService,MulterFile } from './services/file.service';
+import { generateInvoiceSchema } from './validate/invoice.validate';
 
 
 export const generateInvoice = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const session = await mongoose.startSession();
   await session.startTransaction();
   try {
-    let { invoiceNumber, customerId, invoiceDate, dueDate, location, terms, customerNotes, terms_conditions, discountPercent, deposit,paymentOptions, } = req.body;
+    req.body=JSON.parse(req.body.invoiceData);
+    req.body = await generateInvoiceSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+    // consert req.body to json format
+    let { invoiceNumber, customerId, invoiceDate,tax, dueDate, location, terms, customerNotes, terms_conditions, discountPercent, deposit,paymentOptions, } = req.body;
     invoiceDate = new Date(invoiceDate);
     const files:MulterFile[] = req.files as MulterFile[] || [];
     dueDate = new Date(dueDate);
      console.log("paymentOptions", paymentOptions);
-    console.log({invoiceNumber});
     // Find the load by invoice number
     const existingLoad = await Load.findOne({ loadNumber: invoiceNumber })
-    console.log({existingLoad});
+   
     if (!existingLoad) {
       throw new AppError('Load not found', 404);
     }
     if (req.body.deletedfiles?.length) {
-      const deletedFiles = req.body.deletedfiles.split(',');
+      const deletedFiles = req.body.deletedfiles.map((file: string) => file);
       await FileService.deleteExistedFiles(deletedFiles);
       existingLoad.files = existingLoad.files.filter((file) => !deletedFiles.includes(file.filename));
     }
+    
      if(files && files.length>0){
        files.forEach((file) => {
          existingLoad.files.push(file);
        });
     }
-    console.log(existingLoad);
-    // Get items from load's documentUpload
-    const items :itemsProps[]=req.body.items || existingLoad?.items || [];
-     
-    existingLoad.items=items 
+    // Get customerExpense from load's documentUpload
+    const customerExpense :IExpenseItem[]=req.body.customerExpense || existingLoad?.customerExpense || [];
+    existingLoad.customerExpense=customerExpense 
     await existingLoad.save({ session });
-
-    // Calculate totals
-    const subTotal = items.reduce((sum, item) => sum + (item.amount || 0), 0);
-    const totalDiscount = (subTotal * (discountPercent || 0)) / 100;
-    const total = subTotal - totalDiscount;
-    const balanceDue = total - (deposit || 0);
 
     // Create invoice payload
     const invoicePayload = {
@@ -58,16 +54,12 @@ export const generateInvoice = async (req: Request, res: Response, next: NextFun
       invoiceDate,
       dueDate,
       location,
+      tax,
       terms,
-      items,
       customerNotes,
       terms_conditions,
       discountPercent,
       deposit,
-      subTotal,
-      totalDiscount,
-      total,
-      balanceDue,
       status: 'pending',
       freightCharge: existingLoad?.freightCharge || 'Prepaid'
     };
@@ -83,23 +75,14 @@ export const generateInvoice = async (req: Request, res: Response, next: NextFun
     existingLoad.invoiceId = invoice[0]._id;
   
     await existingLoad.save({ session });
-    const invoiceDataCalculated = {
-      ...invoicePayload,
-      totalAmount: total,
-      balanceDue: balanceDue,
-      status: 'pending',
-      freightCharge: existingLoad?.freightCharge || 'Prepaid',
-      
-    }
+   
     await session.commitTransaction();
     await session.endSession();
     res.status(201).json({
       success: true,
-      data: invoiceDataCalculated
     });
   } catch (error) {
     await session.abortTransaction();
-    
     next(error);
   } 
 };
@@ -125,8 +108,14 @@ export const generatePDF = async (req: Request, res: Response, next: NextFunctio
     }
 
     // Calculate totals
-    const items = load?.items || [];
-    const subTotal = items.reduce((sum, item) => sum + (item.amount || 0), 0);
+    const customerExpense = load?.customerExpense || [];
+    const subTotal = customerExpense.reduce((sum, item) => {
+      const rate= Number(item.value || 0)
+      if(!isNaN(rate)){
+         sum += rate || 0;
+      }
+      return sum;
+    }, 0);
     const totalDiscount = (subTotal * (invoice.discountPercent || 0)) / 100;
     const total = subTotal - totalDiscount;
     const balanceDue = total - (invoice.deposit || 0);
@@ -233,8 +222,8 @@ export const getInvoices = async (req: Request, res: Response, next: NextFunctio
       },
       {
         $addFields: {
-          // Calculate subTotal from items array
-          subTotal: { $sum: "$items.amount" },
+          // Calculate subTotal from customerExpense array
+          subTotal: { $sum: "$customerExpense.amount" },
           // Get customer details from load
           customerName: '$load.customer.customerName',
           customerEmail: '$load.customer.email',
@@ -243,7 +232,7 @@ export const getInvoices = async (req: Request, res: Response, next: NextFunctio
           // Calculate financial figures
           totalDiscount: { 
             $multiply: [
-              { $sum: "$items.amount" }, 
+              { $sum: "$customerExpense.amount" }, 
               { $divide: ['$discountPercent', 100] }
             ] 
           }
@@ -279,7 +268,7 @@ export const getInvoices = async (req: Request, res: Response, next: NextFunctio
           customerId: 1,
           loadId: 1,
           loadNumber: '$invoiceNumber',
-          items: '$load.items',
+          customerExpense: '$load.customerExpense',
           customerNotes: 1,
           terms_conditions: 1,
           discountPercent: 1,
@@ -330,7 +319,9 @@ export const updateInvoice = async (req: Request, res: Response, next: NextFunct
   await session.startTransaction();
   try {
     const { invoiceId } = req.params;
-    let { invoiceNumber, customerId, invoiceDate, dueDate, location, terms, customerNotes, terms_conditions, discountPercent, deposit, paymentOptions } = req.body;
+    req.body=JSON.parse(req.body.invoiceData);
+    req.body = await generateInvoiceSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+    let { invoiceNumber, customerId, invoiceDate, dueDate, location,tax, terms, customerNotes, terms_conditions, discountPercent, deposit, paymentOptions } = req.body;
     invoiceDate = new Date(invoiceDate);
     dueDate = new Date(dueDate);
      const files:MulterFile[] = req.files as MulterFile[] || [];
@@ -343,7 +334,7 @@ export const updateInvoice = async (req: Request, res: Response, next: NextFunct
     console.log(existingLoad);
     // check deleted files
     if (req.body.deletedfiles?.length) {
-      const deletedFiles = req.body.deletedfiles.split(',');
+      const deletedFiles = req.body.deletedfiles.map((file: string) => file);
       await FileService.deleteExistedFiles(deletedFiles);
       existingLoad.files = existingLoad.files.filter((file) => !deletedFiles.includes(file.filename));
     }
@@ -352,38 +343,27 @@ export const updateInvoice = async (req: Request, res: Response, next: NextFunct
         existingLoad.files.push(file);
       });
     }
-    // Get items from load's documentUpload
-    const items :itemsProps[]=req.body.items || existingLoad?.items || [];
-    existingLoad.items=items 
+    // Get customerExpense from load's documentUpload
+    const customerExpense :IExpenseItem[]=req.body.customerExpense || existingLoad?.customerExpense || [];
+    existingLoad.customerExpense=customerExpense 
     await existingLoad.save({ session });
-
-    // Calculate totals
-    const subTotal = items.reduce((sum, item) => sum + (item.amount || 0), 0);
-    const totalDiscount = (subTotal * (discountPercent || 0)) / 100;
-    const total = subTotal - totalDiscount;
-    const balanceDue = total - (deposit || 0);
-
     // Create invoice payload
     const invoicePayload = {
       userId: res.locals.userId,
       loadId: existingLoad._id,
       customerId,
+      paymentOptions,
+      tax,
       invoiceNumber,
       invoiceDate,
       dueDate,
       location,
       terms,
-      paymentOptions,
-      items,
+      customerExpense,
       customerNotes,
       terms_conditions,
       discountPercent,
       deposit,
-      subTotal,
-      totalDiscount,
-      total,
-      balanceDue,
-      // status: 'pending',
       freightCharge: existingLoad?.freightCharge || 'Prepaid'
     };
     const invoice = await Invoice.findByIdAndUpdate(invoiceId, invoicePayload, { new: true });

@@ -4,3 +4,6 @@ export const TAX_OPTIONS = [
   { id: 3, name: 'Sales Tax', rate: 8 },
 ];
 
+export const initialInvoiceData = {
+  // ... your initial data
+}; 

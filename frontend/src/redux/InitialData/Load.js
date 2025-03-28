@@ -28,7 +28,11 @@ export const initalLoadData = {
   customerExpense:[],
   carrierIds: [
     {
+      powerunit:null,
+      trailer:null,
       carrier:null,
+      powerunit:"",
+      trailer:"",
       assignDrivers:[]
     },
   ],

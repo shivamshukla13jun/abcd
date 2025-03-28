@@ -18,7 +18,7 @@ import apiService from '@/service/apiService';
 
 const ItemsTable = ({ fields, register, remove, append, watch, setValue }) => {
   const [itemServices, setItemServices] = useState([]);
- 
+
   useEffect(() => {
     fetchItemServices();
   }, []);
@@ -48,25 +48,25 @@ const ItemsTable = ({ fields, register, remove, append, watch, setValue }) => {
     append({ value: null, service: null, positive: false, desc: "" });
   };
 
-  const handleExpenseChange = (index, field,checked) => (e) => {
-    const value = e.target.value;
-     
-    // Special handling for service to ensure it's a valid service
+  const handleExpenseChange = (index, field, value) => {
+    console.log("field",field)
+    console.log("value",value)
     if (field === 'service') {
       const selectedService = itemServices.find(service => service._id === value);
-      if (!selectedService) {
+      if (selectedService) {
+        setValue(`expenses.${index}.service`, value);
+      }
+    } else if (field === 'value') {
+      if (!fields[index].service) {
+        alert("Please select a service first.");
         return;
       }
+      setValue(`expenses.${index}.value`, value);
+    } else if (field === 'positive') {
+      setValue(`expenses.${index}.positive`, value);
+    } else if (field === 'desc') {
+      setValue(`expenses.${index}.desc`, value);
     }
-
-    // Special handling for positive checkbox
-    if (field === 'positive') {
-      setValue(`customerExpense.${index}.positive`,checked);
-      return;
-    }
-
-    // Set the value for other fields
-    setValue(`customerExpense.${index}.${field}`, value);
   };
 
   const handleRemoveExpense = (index) => {
@@ -91,8 +91,8 @@ const ItemsTable = ({ fields, register, remove, append, watch, setValue }) => {
                     fullWidth
                     size="small"
                     label="Service"
-                    value={watch(`customerExpense.${index}.service`) || ''}
-                    onChange={handleExpenseChange(index, 'service')}
+                    value={expense.service || ''}
+                    onChange={(e) => handleExpenseChange(index, 'service', e.target.value)}
                   >
                     <MenuItem value="">Select Service</MenuItem>
                     {itemServices.map((service) => (
@@ -110,15 +110,15 @@ const ItemsTable = ({ fields, register, remove, append, watch, setValue }) => {
                       size="small"
                       type="number"
                       label="Value"
-                      value={watch(`customerExpense.${index}.value`) || ''}
-                      onChange={handleExpenseChange(index, 'value')}
+                      value={expense.value || ''}
+                      onChange={(e) => handleExpenseChange(index, 'value', e.target.value)}
                     />
                     <Box display="flex" alignItems="center" gap={1}>
                       <FormControlLabel
                         control={
                           <Checkbox
-                            checked={watch(`customerExpense.${index}.positive`) === true}
-                            onChange={handleExpenseChange(index, 'positive',true)}
+                            checked={expense.positive === true}
+                            onChange={() => handleExpenseChange(index, 'positive', true)}
                           />
                         }
                         label="+"
@@ -126,8 +126,8 @@ const ItemsTable = ({ fields, register, remove, append, watch, setValue }) => {
                       <FormControlLabel
                         control={
                           <Checkbox
-                            checked={watch(`customerExpense.${index}.positive`) === false}
-                            onChange={handleExpenseChange(index, 'positive',false)}
+                            checked={expense.positive === false}
+                            onChange={() => handleExpenseChange(index, 'positive', false)}
                           />
                         }
                         label="-"
@@ -141,8 +141,8 @@ const ItemsTable = ({ fields, register, remove, append, watch, setValue }) => {
                     fullWidth
                     size="small"
                     label="Description"
-                    value={watch(`customerExpense.${index}.desc`) || ''}
-                    onChange={handleExpenseChange(index, 'desc')}
+                    value={expense.desc || ''}
+                    onChange={(e) => handleExpenseChange(index, 'desc', e.target.value)}
                   />
                 </Grid>
 

@@ -84,7 +84,7 @@ const DriverForm = ({ driver, onSubmit, onCancel }) => {
   onChange={(date) => {
     setFormData(prev => ({
       ...prev,
-      driverCDLExpiration: date ? date.toISOString() : null  // Store as ISO string
+      driverCDLExpiration: date ?dayjs(date) : null  // Store as ISO string
     }));
   }}
   renderInput={(params) => <TextField {...params} required />}

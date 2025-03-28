@@ -75,9 +75,7 @@ export interface ICarrierAssignment {
   dispatchRate: number;
 }
 
-export interface ICustomerExpense extends IExpenseItem {
-  customerId: Types.ObjectId;
-}
+
 
 export interface ILoad extends Document {
   loadNumber: string;
@@ -85,7 +83,7 @@ export interface ILoad extends Document {
   invoiceId: Types.ObjectId;
   commodity: string;
   loadSize: LoadSize;
-  customerExpense: ICustomerExpense[];
+  customerExpense: IExpenseItem[];
   declaredValue?: number;
   weight?: number;
   temperature?: number;
@@ -120,6 +118,8 @@ const CarrierExpenseSchema = new Schema({
 
 const CarrierAssignmentSchema = new Schema({
   carrier: { type: Schema.Types.ObjectId, ref: 'Carrier', required: true },
+  powerunit:{type:Schema.Types.String, required:true},
+  trailer:{type:Schema.Types.String, required:true},
   assignDrivers: [{ type: Schema.Types.ObjectId, ref: 'Driver' }],
   carrierExpense: [CarrierExpenseSchema],
   dispatchRate: { type: Number, min: 0, max: 100, default: 0 },
@@ -141,6 +141,10 @@ const LoadSchema = new Schema({
     required: true, 
     unique: true,
     index: true 
+  },
+  customerRate: {
+    type: Number,
+    required: [true, 'Customer rate is required']
   },
   status: { 
     type: String, 

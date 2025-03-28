@@ -218,6 +218,11 @@ getPaymentTermById: async (id) => {
   const response = await api.get(`/itemservices/${id}`);
   return response.data;
 },
+getTaxOptions: async () => {
+  const response = await api.get("/tax-options");
+  return response.data;
+}
+
 };
 
 export default apiService;

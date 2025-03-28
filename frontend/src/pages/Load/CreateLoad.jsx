@@ -28,7 +28,7 @@ const CreateLoad = () => {
      id,
     deliveryLocations,
     files,
-    items,
+    items,customerRate,
     freightCharge
   } = useSelector((state) => state.load);
   const loadData = useSelector((state) => state.load);
@@ -148,7 +148,7 @@ const CreateLoad = () => {
         // Prepare load data
         const loadData = {
           ...loadDetails,
-          customerExpense,
+          customerExpense,customerRate:customerRate || 0,
           customerId: customerInformation._id,
           carrierIds: carrierIds,
           pickupLocationId: pickupResponses.map((loc) => loc._id).join(','),

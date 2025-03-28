@@ -127,6 +127,9 @@ const loadSlice = createSlice({
     toggleDeliveryVisibility: (state) => {
       state.showDelivery = !state.showDelivery;
     },
+    setCustomerRate: (state, action) => {
+      state.customerRate = action.payload;
+    },
     // Inside your loadSlice reducers:
 initializeLoadData: (state, action) => {
   return {
@@ -142,7 +145,7 @@ initializeLoadData: (state, action) => {
 });
 
 export const {
-  setLoadDetails,
+  setLoadDetails,setCustomerRate,
   setCustomerInformation,
   setcarrierIds,
   toggleDeliveryVisibility,

@@ -10,7 +10,7 @@ import apiService from '@/service/apiService';
 import { getServiceType } from '@/utils/getServicetype';
 import { useSelector } from 'react-redux';
 
-const Expenses = ({ carrierExpenses, setCarrierExpenses, selectedCarrier, updateCarrierData, assignDrivers }) => {
+const Expenses = ({ carrierExpenses, setCarrierExpenses, selectedCarrier, updateCarrierData, assignDrivers,dispatchRate=0,powerunit,trailer }) => {
   const { loadDetails = {} } = useSelector((state) => state.editload || {});
 
   const [itemServices, setItemServices] = useState([]);
@@ -37,7 +37,7 @@ const Expenses = ({ carrierExpenses, setCarrierExpenses, selectedCarrier, update
     };
     const updatedExpenses = [...carrierExpenses, newExpense];
     setCarrierExpenses(updatedExpenses);
-    updateCarrierData(selectedCarrier, assignDrivers, updatedExpenses);
+    updateCarrierData(selectedCarrier, assignDrivers, updatedExpenses,powerunit,trailer);
   };
 
   const handleExpenseChange = (index, field, value) => {
@@ -69,24 +69,27 @@ const Expenses = ({ carrierExpenses, setCarrierExpenses, selectedCarrier, update
     }
 
     setCarrierExpenses(updatedExpenses);
-    updateCarrierData(selectedCarrier, assignDrivers, updatedExpenses);
+    updateCarrierData(selectedCarrier, assignDrivers, updatedExpenses,powerunit,trailer);
   };
 
   const handleRemoveExpense = (index) => {
     const updatedExpenses = carrierExpenses.filter((_, idx) => idx !== index);
     setCarrierExpenses(updatedExpenses);
-    updateCarrierData(selectedCarrier, assignDrivers, updatedExpenses);
+    updateCarrierData(selectedCarrier, assignDrivers, updatedExpenses,powerunit,trailer);
   };
   const getSubtotal = () => {
-    const baseAmount =  0; // Ensure valid number
-    // const baseAmount = parseFloat(loadDetails.loadAmount) || 0; // Ensure valid number
+    console.log("dispatchRate", dispatchRate)
+    console.log("loadAmount", loadDetails.loadAmount)
+   const LoadAmount = parseFloat(loadDetails.loadAmount) || 0; // Ensure valid number
+   const baseAmount=(dispatchRate/100)*LoadAmount
     const totalExpenses = carrierExpenses
       .filter(expense => !isNaN(parseFloat(expense.value))) // Only valid numbers
       .reduce((sum, expense) => {
         const amount = parseFloat(expense.value);
         return expense.positive ? sum + amount : sum - amount;
       }, 0);
-
+    console.log("baseAmount", baseAmount)
+    console.log("totalExpenses", totalExpenses)
     return baseAmount + totalExpenses; // Adjust subtotal based on load amount
   };
   return (

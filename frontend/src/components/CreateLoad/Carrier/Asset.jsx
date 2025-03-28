@@ -10,9 +10,9 @@ import Expenses from "./CarrierExpenses";
 const Asset = ({ index, onRemove }) => {
   const dispatch = useDispatch();
   const carrierData = useSelector((state) => state.load.carrierIds[index]);
-
   const [carriers, setCarriers] = useState([]);
-
+  const [powerunit, setPowerunit] = useState(carrierData?.powerunit || "");
+  const [trailer, setTrailer] = useState(carrierData?.trailer || "");
   const [assignDrivers, setAssignDrivers] = useState(carrierData?.assignDrivers || []);
   const [selectedCarrier, setSelectedCarrier] = useState(carrierData?.carrier || null);
   const [carrierExpenses, setCarrierExpenses] = useState(carrierData?.carrierExpense || []);
@@ -37,18 +37,21 @@ const Asset = ({ index, onRemove }) => {
   const handleDispatchRateChange = (value) => {
     const newValue = Math.min(100, Math.max(0, Number(value) || 0));
     setDispatchRate(newValue);
-    updateCarrierData(selectedCarrier, assignDrivers, carrierExpenses, newValue);
+    updateCarrierData(selectedCarrier, assignDrivers, carrierExpenses, newValue,powerunit,trailer);
   };
 
-  const updateCarrierData = (carrier, drivers, expenses, rate = dispatchRate) => {
+  const updateCarrierData = (carrier, drivers, expenses, rate = dispatchRate,powerunit,trailer) => {
     dispatch(setcarrierIds({
       index,
       asset: {
         carrier,
         assignDrivers: drivers,
         carrierExpense: expenses,
-        dispatchRate: rate
-      }
+        dispatchRate: rate,
+        powerunit,
+        trailer
+      },
+
     }));
   };
 
@@ -57,7 +60,7 @@ const Asset = ({ index, onRemove }) => {
     setSelectedCarrier(carrierId);
     setAssignDrivers([]);
     setCarrierExpenses([]);
-    updateCarrierData(carrierId, [], []);
+    updateCarrierData(carrierId, [], [], 0,0,0);
   };
 
   const AddDriver = (e) => {
@@ -125,8 +128,8 @@ const Asset = ({ index, onRemove }) => {
     <Card sx={{ mb: 2, p: 2 }}>
       <Stack spacing={3}>
         <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="h6" color="primary">Carrier {index + 1}</Typography>
-        {onRemove && (
+          {/* <Typography variant="h6" color="primary">Carrier </Typography> */}
+        {/* {onRemove && (
             <Button
               variant="outlined"
               color="error"
@@ -136,7 +139,7 @@ const Asset = ({ index, onRemove }) => {
             >
               Remove
             </Button>
-          )}
+          )} */}
         </Box>
 
         {/* Carrier Selection */}
@@ -176,12 +179,34 @@ const Asset = ({ index, onRemove }) => {
                 <Grid item xs={12} md={4}>
                   <Typography><b>Contact Email:</b> {carrierInfo?.contactEmail}</Typography>
                 </Grid>
+                {/* add power unit */}
+                <Grid item xs={12} md={4}>
+                  <Typography><b>Power Unit </b></Typography>
+                  {/* Text field */}
+                  <TextField
+                    fullWidth
+                    size="small"
+                    // label="Power Unit"
+                    value={(e)=>setPowerunit(e.target.value)}
+                    onChange={(e) => updateCarrierData(selectedCarrier, assignDrivers, carrierExpenses, dispatchRate,powerunit,trailer)}
+                  />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                  <Typography><b>Trailer </b></Typography>
+                  {/* Text field */}
+                  <TextField
+                    fullWidth
+                    size="small"
+                    // label="Trailer"
+                    value={(e)=>setTrailer(e.target.value)} 
+                    onChange={(e) => updateCarrierData(selectedCarrier, assignDrivers, carrierExpenses, dispatchRate, powerunit,trailer)}
+                  />
+                  </Grid>
                 
               </Grid>
             </Paper>
 
-            {/* Add Dispatch Rate Section here */}
-            {renderDispatchRateSection()}
+          
 
             {/* Add matetial ui divider */}
             <Divider sx={{ mt: 2, mb: 2  }}  />
@@ -232,9 +257,10 @@ const Asset = ({ index, onRemove }) => {
                 <Typography>No drivers assigned</Typography>
               )}
             </Box>
-
+            {/* Add Dispatch Rate Section here */}
+            {renderDispatchRateSection()}
             {/* Carrier Expenses Section */}
-             <Expenses {...{carrierExpenses,setCarrierExpenses,selectedCarrier ,updateCarrierData,assignDrivers }} />
+             <Expenses {...{carrierExpenses,setCarrierExpenses,selectedCarrier ,updateCarrierData,assignDrivers,dispatchRate,powerunit,trailer }} />
           </>
         )}
       </Stack>

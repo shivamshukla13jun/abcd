@@ -19,6 +19,7 @@ export const initialinvoiceData = {
       amount: 0
     }
   ],
+  customerExpense:[],
   customerNotes: '',
   terms_conditions: '',
   discountPercent: 0,

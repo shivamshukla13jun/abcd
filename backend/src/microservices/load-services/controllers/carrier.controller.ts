@@ -1,7 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import Carrier from '../models/Carrier.model';
-import User from '../../auth-service/user.model';
-
 import { AppError } from '../../../middlewares/error';
 import Load from '../models/Load.model';
 /**
@@ -104,16 +102,6 @@ const deleteCarrier = async (req: Request, res: Response, next: NextFunction): P
     next(error);
   }
 };
-const viewDocuments=async(req: Request, res: Response, next: NextFunction): Promise<void> => {
-  try {
-    //  pagination add and get all documens from a load model
-    const { page, limit } = req.query;
-    const loads = await Load.find()
-    .populate('userId')
-    
-     } catch (error) {
-    next(error);
-  }
-}
+
 
 export { createCarrier, getAllCarriers, getCarrierById, updateCarrier, deleteCarrier };

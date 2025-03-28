@@ -115,14 +115,8 @@ const getAllLoads = async (req: Request, res: Response, next: NextFunction): Pro
           as: 'customerId'
         }
       },
-      {
-        $lookup: {
-          from: 'carriers',
-          localField: 'carrierIds',
-          foreignField: '_id',
-          as: 'carrierIds'
-        }
-      },
+      // 
+   
       {
         $lookup: {
           from: 'locations',
@@ -240,6 +234,7 @@ const getAllLoads = async (req: Request, res: Response, next: NextFunction): Pro
           as: 'invoice'
         }
       },
+     
       {
         $lookup: {
           from: 'users',
@@ -248,6 +243,80 @@ const getAllLoads = async (req: Request, res: Response, next: NextFunction): Pro
           as: 'userId'
         }
       },
+      {
+        $lookup: {
+          from: 'carriers',
+          localField: 'carrierIds.carrier',
+          
+          foreignField: '_id',
+          as: 'carrierDetails'
+        }
+      },
+       // Lookup drivers and temporarily store in "driverDetails"
+        {
+        $lookup: {
+          from: 'drivers',
+          localField: 'carrierIds.assignDrivers',
+          foreignField: '_id',
+          as: 'driverDetails'
+        }
+        },
+     
+  // Merge carriers into carrierIds array without overriding existing fields
+        {
+        $set: {
+        carrierIds: {
+        $map: {
+        input: "$carrierIds",
+        as: "carrier",
+        in: {
+        $mergeObjects: [
+          "$$carrier",
+          {
+            carrier: {
+              $arrayElemAt: [
+                {
+                  $filter: {
+                    input: "$carrierDetails",
+                    as: "c",
+                    cond: { $eq: ["$$c._id", "$$carrier.carrier"] }
+                  }
+                },
+                0
+              ]
+            }
+          },
+          {
+            assignDrivers: {
+              $map: {
+                input: "$$carrier.assignDrivers",
+                as: "driverId",
+                in: {
+                  $arrayElemAt: [
+                    {
+                      $filter: {
+                        input: "$driverDetails",
+                        as: "d",
+                        cond: { $eq: ["$$d._id", "$$driverId"] }
+                      }
+                    },
+                    0
+                  ]
+                }
+              }
+            }
+          }
+        ]
+        }
+        }
+        }
+        }
+        },
+
+        // Remove temporary details after merging
+        {
+        $unset: ["carrierDetails", "driverDetails"]
+        },
       {
         $unwind: {
           path: '$customerId',
@@ -262,6 +331,7 @@ const getAllLoads = async (req: Request, res: Response, next: NextFunction): Pro
           preserveNullAndEmptyArrays: true
         }
       },
+     
       {
         $unwind: {
           path: '$userId',

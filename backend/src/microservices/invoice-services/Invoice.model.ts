@@ -1,7 +1,8 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, Types } from 'mongoose';
 
 export interface IInvoice extends Document {
   userId: mongoose.Types.ObjectId;
+  tax?: Types.ObjectId;
   invoiceNumber: string;
   loadId: mongoose.Types.ObjectId;
   status: string;
@@ -22,6 +23,10 @@ const InvoiceSchema: Schema = new Schema({
     type: Schema.Types.ObjectId, 
     ref: 'User', 
     required: true 
+  },
+  tax: {
+    type: Schema.Types.ObjectId,
+    ref: 'taxservices',
   },
   invoiceNumber: { 
     type: String, 

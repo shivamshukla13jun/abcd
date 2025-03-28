@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Container, Nav, Table } from 'react-bootstrap';
+import { Button, Container, Nav, Table, Dropdown, DropdownButton, Tooltip, OverlayTrigger } from 'react-bootstrap';
 import { IoIosAdd } from "react-icons/io";
 import { useNavigate } from 'react-router-dom';
 import apiService from "@service/apiService";
@@ -38,6 +38,7 @@ const ViewLoad = () => {
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState(null);
   const [loads, setLoads] = useState([]);
+  const [invoiceType, setInvoiceType] = useState('customer');
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -89,6 +90,7 @@ const ViewLoad = () => {
   };
   const handleCreateInvoice = async (data) => {
     try {
+      console.log("create invlice",data)
       await apiService.generateInvoice(data);
       toast.success('Invoice created successfully');
       setShowInvoiceModal(false);
@@ -100,7 +102,7 @@ const ViewLoad = () => {
 
   const handleEditInvoice = async (data) => {
     try {
-      console.log("data ???",data)
+      console.log("edit invlice",{data,editingInvoice:editingInvoice})
       await apiService.updateInvoice(editingInvoice._id, data);
       toast.success('Invoice updated successfully');
       setShowInvoiceModal(false);
@@ -113,6 +115,16 @@ const ViewLoad = () => {
   const handleCloseModal = () => {
     setShowInvoiceModal(false);
     setEditingInvoice(null);
+  };
+
+  const handleInvoiceClick = (type, load) => {
+    setInvoiceType(type);
+    if (load.invoice && type === 'customer') {
+      setEditingInvoice({...load.invoice, loadNumber: load.loadNumber});
+    } else {
+      setEditingInvoice({ loadNumber: load.loadNumber, invoiceNumber: load.loadNumber });
+    }
+    setShowInvoiceModal(true);
   };
   
   const LoadTable = ({ data }) => (
@@ -148,30 +160,27 @@ const ViewLoad = () => {
                   </span>
                 </td>
                 <td>
-                  {load.invoice ? (
-                    <Button
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={
+                      <Tooltip>
+                        Select invoice type
+                      </Tooltip>
+                    }
+                  >
+                    <DropdownButton
                       variant="link"
+                      title={load.invoice ? "Edit Invoice" : "Create Invoice"}
                       className="view-load__action-btn"
-                      onClick={() =>{
-                        setEditingInvoice({...load.invoice,loadNumber:load.loadNumber});
-                        setShowInvoiceModal(true);
-                      }}
                     >
-                      Edit Invoice
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="link"
-                      className="view-load__action-btn"
-                      onClick={() =>{
-                        setEditingInvoice({ loadNumber:load.loadNumber,invoiceNumber:load.loadNumber});
-                        setShowInvoiceModal(true);
-                        
-                      }}
-                    >
-                      Create Invoice
-                    </Button>
-                  )}
+                      <Dropdown.Item onClick={() => handleInvoiceClick('customer', load)}>
+                        Customer Invoice
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={() => handleInvoiceClick('carrier', load)}>
+                        Carrier Invoice
+                      </Dropdown.Item>
+                    </DropdownButton>
+                  </OverlayTrigger>
                 </td>
                 <td>{load.customerId?.customerName || "-"}</td>
                 <td>
@@ -221,7 +230,7 @@ const ViewLoad = () => {
                 <td>
                   {load.carrierIds?.length > 0 ? (
                     <ul className="data-list">
-                      {load.carrierIds.map((carrier, index) => (
+                      {load.carrierIds.map(({carrier}, index) => (
                         <li key={`${carrier._id}-${index}`}>
                           {carrier.primaryContact || "-"}
                         </li>
@@ -230,19 +239,16 @@ const ViewLoad = () => {
                   ) : "-"}
                 </td>
                 <td>
-                  {load.carrierIds?.length > 0 ? (
-                    <ul className="data-list">
-                      {load.carrierIds
-                        .flatMap((carrier) => [
-                          carrier?.driverInfo?.driver1Name,
-                          carrier?.driverInfo?.driver2Name,
-                        ])
-                        .filter(Boolean)
-                        .map((name, index) => (
-                          <li key={index}>{name}</li>
-                        ))}
-                    </ul>
-                  ) : "-"}
+                {load.carrierIds?.length > 0 ? (
+  <ul className="data-list">
+    {load.carrierIds
+      .flatMap(({ assignDrivers }) => assignDrivers || []) // Flatten correctly
+      .map((driver, index) => (
+        <li key={index}>{driver.driverName}</li> // Access `driverName` correctly
+      ))}
+  </ul>
+) : "-"}
+
                 </td>
                 <td>{load.equipmentType || "-"}</td>
                 <td>
@@ -323,13 +329,13 @@ const ViewLoad = () => {
       >
         <Box sx={modalStyle}>
           <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
-            {editingInvoice ? 'Edit Invoice' : 'Create New Invoice'}
+            {editingInvoice ? `${editingInvoice?._id?"Edit":"Create"} ${invoiceType === 'customer' ? 'Customer' : 'Carrier'} Invoice` : 
+             `${editingInvoice?._id?"Edit":"Create New"}  ${invoiceType === 'customer' ? 'Customer' : 'Carrier'} Invoice`}
           </Typography>
           <InvoiceForm
-            onSubmit={editingInvoice ? handleEditInvoice : handleCreateInvoice}
+            onSubmit={editingInvoice?._id ? handleEditInvoice : handleCreateInvoice}
             initialData={editingInvoice}
-            // label={editingInvoice ? 'Edit Invoice' : 'Create New Invoice'}
-
+            invoiceType={invoiceType}
           />
         </Box>
       </Modal>

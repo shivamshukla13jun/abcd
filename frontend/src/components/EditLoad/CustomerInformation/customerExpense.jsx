@@ -15,15 +15,15 @@ import { getServiceType } from '@/utils/getServicetype';
 import apiService from '@/service/apiService';
 const CustomerExpense = () => {
   const dispatch = useDispatch();
-  const { customerInformation = {}, customerExpense = [],loadDetails={} } = useSelector((state) => state.editload || {});
+  const { customerInformation = {},customerRate=0, customerExpense = [],loadDetails={} } = useSelector((state) => state.editload || {});
   const [itemServices, setItemServices] = useState([]);
   // Fetch item services 
   useEffect(() => {
     fetchItemServices();
   }, []);
   const getSubtotal = () => {
-  const baseAmount =  0; // Ensure valid number
-  // const baseAmount = parseFloat(loadDetails.loadAmount) || 0; // Ensure valid number
+  // const baseAmount =  0; // Ensure valid number
+  const baseAmount = parseFloat(customerRate) || 0; // Ensure valid number
     const totalExpenses = customerExpense
       .filter(expense => !isNaN(parseFloat(expense.value))) // Only valid numbers
       .reduce((sum, expense) => {

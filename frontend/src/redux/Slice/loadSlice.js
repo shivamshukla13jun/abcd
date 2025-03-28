@@ -138,6 +138,9 @@ initializeLoadData: (state, action) => {
     setCustomerExpense: (state, action) => {
       state.customerExpense = action.payload;
     },
+    setCustomerRate: (state, action) => {
+      state.customerRate = action.payload;
+    },
   },
 });
 
@@ -157,7 +160,7 @@ export const {
   setPickupVisibility,
   addPickupLocation,
   removePickupLocation,
-  
+  setCustomerRate,
   resetLoad,
   setCustomerVisibility,
   togglecarrierIdsVisibility,

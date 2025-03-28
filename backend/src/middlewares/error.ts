@@ -32,6 +32,7 @@ const errorHandler = (
   res: Response,
   next: NextFunction
 ) => {
+  console.log("errrrr",err)
   let error = { ...err };
   error.message = err.message;
 

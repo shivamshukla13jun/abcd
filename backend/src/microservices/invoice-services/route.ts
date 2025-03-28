@@ -27,7 +27,7 @@ const router = express.Router();
 router.post('/generate', 
   verifyToken,
   upload.array('files'), // Handle file uploads if any
-  requestValidate(generateInvoiceSchema),
+  
   invoiceController.generateInvoice
 );
 
@@ -49,7 +49,7 @@ router.get('/:invoiceId',
 router.put('/:invoiceId', 
   verifyToken, 
   upload.array('files'), // Handle file uploads if any
-  requestValidate(generateInvoiceSchema),
+
   invoiceController.updateInvoice
 );
 
