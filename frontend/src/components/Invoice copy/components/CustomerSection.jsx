@@ -48,7 +48,7 @@ const CustomerSection = ({ register, errors, watch, setValue }) => {
         <Grid item md={6}>
           <TextField
             fullWidth
-            label="Customer Email"
+            label="Carrier Email"
             type="email"
             {...register('customerEmail')}
             error={!!errors.customerEmail}  
@@ -145,6 +145,7 @@ const CustomerSection = ({ register, errors, watch, setValue }) => {
             )}
           </FormControl>
         </Grid>
+    
       </Grid>
     </Grid>
   );

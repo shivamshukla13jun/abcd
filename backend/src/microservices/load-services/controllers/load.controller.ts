@@ -399,8 +399,8 @@ const getLoadByloadNumber = async (req: Request, res: Response, next: NextFuncti
       populate:{
         path:"paymentTerms"
       }
-    }).populate("pickupLocationId").populate("deliveryLocationId").populate("carrierIds")
-    console.log("debug", load)
+    }).populate("pickupLocationId").populate("deliveryLocationId").populate("carrierIds.carrier").populate("userId");
+    
     if (!load) {
       throw new AppError('Load not found', 404);
     }

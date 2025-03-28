@@ -11,17 +11,17 @@ const HeaderSection = ({ register, errors, setValue, watch,customerId }) => {
     <Grid item xs={12}>
       <Grid container spacing={3}>
         <Grid item md={6}>
-        <FormControl fullWidth error={!!errors.customerName}>
+        <FormControl fullWidth error={!!errors.carrierName}>
             <TextField
               fullWidth
-              label="Customer Name"
-              value={watch('customerName')}
-              {...register('customerName')}
+              label="Carrier Name"
+              value={watch('carrierName')}
+              {...register('carrierName')}
               // placeholder="Enter billing address"
               InputLabelProps={{ shrink: true }}
             />
-            {errors.customerName && (
-              <FormHelperText>{errors.customerName.message}</FormHelperText>
+            {errors.carrierName && (
+              <FormHelperText>{errors.carrierName.message}</FormHelperText>
             )}
           </FormControl>
         </Grid>
@@ -54,6 +54,23 @@ const HeaderSection = ({ register, errors, setValue, watch,customerId }) => {
             />
             {errors.customerAddress && (
               <FormHelperText>{errors.customerAddress.message}</FormHelperText>
+            )}
+          </FormControl>
+        </Grid>
+    
+        <Grid item md={12}>
+          <FormControl fullWidth error={!!errors.carrierAddress}>
+            <TextField
+              fullWidth
+              label="Carrier Address"
+              multiline
+              rows={4}
+              {...register('carrierAddress')}
+              placeholder="Enter carrier address"
+              InputLabelProps={{ shrink: true }}
+            />
+            {errors.carrierAddress && (
+              <FormHelperText>{errors.carrierAddress.message}</FormHelperText>
             )}
           </FormControl>
         </Grid>

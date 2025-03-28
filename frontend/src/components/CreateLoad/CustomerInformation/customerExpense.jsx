@@ -98,6 +98,8 @@ const CustomerExpense = () => {
   };
   // Remove an expense
   const handleRemoveExpense = (index) => {
+    let alert = window.confirm("Are you sure you want to delete this expense?");
+    if (!alert) return;
     const updatedExpenses = customerExpense.filter((_, idx) => idx !== index);
     dispatch(setCustomerExpense(updatedExpenses));
   };

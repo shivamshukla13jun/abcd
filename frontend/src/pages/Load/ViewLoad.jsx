@@ -122,7 +122,7 @@ const ViewLoad = () => {
     if (load.invoice && type === 'customer') {
       setEditingInvoice({...load.invoice, loadNumber: load.loadNumber});
     } else {
-      setEditingInvoice({ loadNumber: load.loadNumber, invoiceNumber: load.loadNumber });
+      setEditingInvoice({ loadNumber: load.loadNumber,carrierId:load.carrierIds.map(({carrier})=>carrier._id), invoiceNumber: load.loadNumber });
     }
     setShowInvoiceModal(true);
   };

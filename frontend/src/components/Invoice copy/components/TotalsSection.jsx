@@ -1,7 +1,7 @@
 import React from 'react';
-import { Grid, Paper, Typography, TextField, Box } from '@mui/material';
-
-const TotalsSection = ({ totals, register, watch }) => {
+import { Grid, Paper, Typography, TextField, Box, MenuItem } from '@mui/material';
+const TotalsSection = ({ totals, register, watch ,TAX_OPTIONS=[]}) => {
+  
   return (
     
           <Paper sx={{ p: 2 }}>
@@ -37,9 +37,26 @@ const TotalsSection = ({ totals, register, watch }) => {
                   size="small"
                   type="number"
                   {...register('deposit')}
-                  sx={{ width: 70, mx: 1 }}
+                  // sx={{ width: 70, mx: 1 }}
                 />
             </Box>
+            {/* Add Tax From DropwDown */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant='strong' fontWeight={600}>Tax</Typography>
+              <TextField
+                select
+                size="small"
+                {...register('tax')}
+                // sx={{ width: 70, mx: 1 }}
+              >
+                {TAX_OPTIONS.map((tax) => (
+                  <MenuItem key={tax._id} value={tax._id}>
+                  {tax.label} ({tax.value}%)
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Box>
+            {/* Total After Tax */}
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant='strong' fontWeight={600}>Balance Due</Typography>

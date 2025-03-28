@@ -281,21 +281,27 @@ const EditLoad = () => {
             >
               Previous
             </button>
+             {/* next */}
             <button
-              type={activeTab === "document"?"submit":"button"}
-              className="btn btn-outline-primary ms-2 custom-button"
-              onClick={activeTab === "document"?handleSubmit:() => {
+              type="button"
+              className="btn btn-outline-secondary custom-button"
+              onClick={() => {
                 const currentIndex = tabs.indexOf(activeTab);
                 if (currentIndex < tabs.length - 1) {
                   dispatch(setActiveTab(tabs[currentIndex + 1]));
                 }
               }}
-              disabled={  isSubmitting}
-
+              disabled={activeTab === "document"}
             >
-              {
-                activeTab === "document"? "Save":isSubmitting?"Saving...":"Next"
-              }
+              Next
+            </button>
+            <button
+              type="submit"
+              onClick={handleSubmit}
+              className="btn btn-primary custom-button"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Saving...' : 'Save'}
             </button>
           </div>
         </div>

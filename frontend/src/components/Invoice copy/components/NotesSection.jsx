@@ -29,9 +29,10 @@ const NotesSection = ({ register, errors }) => {
             placeholder="Enter Terms and Conditions"
           />
         </Grid>
+    
       </Grid>
     </Grid>
   );
 };
 
-export default NotesSection; 
+export default NotesSection;

@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import { Send } from '@mui/icons-material';
 import apiService from '@/service/apiService';
-import './InvoiceForm.scss';
+
 import { initialinvoiceData } from '@/redux/InitialData/invoice';
 import useDebounce from '@/hooks/useDebounce';
 import { toast } from 'react-toastify';
@@ -23,7 +23,7 @@ import NotesSection from './components/NotesSection';
 import { generateInvoiceSchema } from '@/schema/auth/invoiceSchema';
 import LoadingSpinner from '@/components/common/LoadingSpinner/Index';
 
-const CustomerInvoiceForm = ({ onSubmit, initialData }) => {
+const CarrierInvoiceForm = ({ onSubmit, initialData }) => {
   const[currenttime,setCurrentTime]=useState(Date.now());
   const [searchTerm] = useState(initialData?.loadNumber || '');
   const [attachments, setAttachments] = useState([]);
@@ -39,7 +39,6 @@ const CustomerInvoiceForm = ({ onSubmit, initialData }) => {
   });
 
   const debouncedSearchTerm = useDebounce(searchTerm, 800);
-
   const { 
     register, 
     handleSubmit, 
@@ -55,7 +54,7 @@ const CustomerInvoiceForm = ({ onSubmit, initialData }) => {
 
   const { fields, append, remove } = useFieldArray({
     control,
-    name: "customerExpense"
+    name: "carrierExpense"
   });
 
   // Cleanup object URLs
@@ -137,7 +136,6 @@ const CustomerInvoiceForm = ({ onSubmit, initialData }) => {
         if (response?.data) {
           const loadData = response.data;
           setLoadDetails(loadData);
-
           const updatedFields = {
             invoiceNumber: loadData.loadNumber,
             location: loadData?.deliveryLocationId?.[0]?.address,
@@ -145,12 +143,11 @@ const CustomerInvoiceForm = ({ onSubmit, initialData }) => {
             customerEmail: loadData?.customerId?.email,
             customerName: loadData?.customerId?.customerName,
             customerAddress: loadData?.customerId?.address,
-            terms: loadData?.customerId?.paymentTerms?.[0]?._id,
+            // terms: loadData?.customerId?.paymentTerms?.[0]?._id,
             customerId: loadData?.customerId?._id,
             customerExpense: loadData?.customerExpense || [],
             customerRate: loadData?.customerRate,
           };
-
           setAttachments(loadData?.files || []);
           reset(updatedFields);
         }
@@ -273,4 +270,4 @@ const CustomerInvoiceForm = ({ onSubmit, initialData }) => {
   );
 };
 
-export default CustomerInvoiceForm;
+export default CarrierInvoiceForm;
