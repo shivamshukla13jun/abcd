@@ -9,6 +9,13 @@ const parseJsonString = (jsonString: string) => {
 };
 
 export const generateInvoiceSchema = yup.object().shape({
+  tax:yup.string().nullable().optional().transform((value, originalValue) => {
+    console.log("originalValue",originalValue)
+    if(typeof originalValue === 'string' && originalValue==""){
+      return null
+    }
+    return value;
+  }),
   invoiceNumber: yup.string().required('Load number is required'),
   invoiceDate: yup.date().default(new Date()).transform((value) => value ? new Date(value) : null).required('Invoice date is required'),
   dueDate: yup.date().default(new Date()).transform((value) => value ? new Date(value) : null).required('Due date is required'),

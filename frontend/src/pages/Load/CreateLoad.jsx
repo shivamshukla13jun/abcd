@@ -146,19 +146,14 @@ const CreateLoad = () => {
         });
        console.log("carr")
         // Prepare load data
-        const carierdata=carrierIds.map((carrier)=>{
-          return {
-            ...carrier,
-            powerunit: "02",  // Ensure correct update
-            trailer: "05", 
-           
-          }
-        })
+        console.log("carrierIds",carrierIds)
+        console.log("all")
+       
         const loadData = {
           ...loadDetails,
           customerExpense,customerRate:customerRate || 0,
           customerId: customerInformation._id,
-          carrierIds: carierdata,
+          carrierIds: carrierIds,
           pickupLocationId: pickupResponses.map((loc) => loc._id).join(','),
           deliveryLocationId: deliveryResponses.map((loc) => loc._id).join(','),
           // items: items,

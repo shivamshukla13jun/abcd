@@ -17,24 +17,28 @@ import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import apiService from '@/service/apiService';
 
 const ItemsTable = ({ fields, register, remove, append, watch, setValue, totals, setTotals }) => {
-  console.log("totals",totals)
   const [itemServices, setItemServices] = useState([]);
+  const [customerExpenseData, setCustomerExpenseData] = useState(watch("customerExpense") || []);
+  const [selectedService, setSelectedService] = useState(""); // New state for selected service
+
   useEffect(() => {
     fetchItemServices();
   }, []);
-  
-  // Add this useEffect to watch for changes
+
   useEffect(() => {
-    const subtotal = getSubtotal();
-    setTotals(prev => ({ ...prev, subTotal: subtotal }));
-  }, [watch("customerRate"), fields]);
+    setCustomerExpenseData(watch("customerExpense") || []);
+  }, []);
+
+  useEffect(() => {
+    setValue("customerExpense", customerExpenseData);
+    setTotals(prev => ({ ...prev, subTotal: getSubtotal() }));
+  }, [customerExpenseData]);
 
   const getSubtotal = () => {
     const baseAmount = parseFloat(watch("customerRate")) || 0;
-    const totalExpenses = fields.reduce((sum, expense) => {
-      const amount = parseFloat(watch(`customerExpense.${expense.id}.value`)) || 0;
-      const isPositive = watch(`customerExpense.${expense.id}.positive`);
-      return isPositive ? sum + amount : sum - amount;
+    const totalExpenses = customerExpenseData.reduce((sum, expense) => {
+      const amount = parseFloat(expense.value) || 0;
+      return expense.positive ? sum + amount : sum - amount;
     }, 0);
     return baseAmount + totalExpenses;
   };
@@ -49,59 +53,73 @@ const ItemsTable = ({ fields, register, remove, append, watch, setValue, totals,
   };
 
   const handleAddExpense = () => {
-    append({ value: null, service: null, positive: false, desc: "" });
-  };
-
-  const handleExpenseChange = (index, field,checked) => (e) => {
-    const value = e.target.value;
-     
-    // Special handling for service to ensure it's a valid service
-    if (field === 'service') {
-      const selectedService = itemServices.find(service => service._id === value);
-      if (!selectedService) {
-        return;
-      }
-    }
-
-    // Special handling for positive checkbox
-    if (field === 'positive') {
-      setValue(`customerExpense.${index}.positive`,checked);
-      const subtotal=getSubtotal()
-      setTotals((prev=>({...prev,subTotal:subtotal})))
+    if (!selectedService) {
+      alert("Please select a service before adding an expense.");
       return;
     }
 
-    // Set the value for other fields
-    setValue(`customerExpense.${index}.${field}`, value);
-    const subtotal=getSubtotal()
-    setTotals((prev=>({...prev,subTotal:subtotal})))
+    setCustomerExpenseData(prev => [...prev, { value: null, service: selectedService, positive: false, desc: "" }]);
+    setSelectedService(""); // Reset service selection after adding expense
+  };
+
+  const handleExpenseChange = (index, field, checked) => (e) => {
+    const value = field === "positive" ? checked : e.target.value;
+    setCustomerExpenseData(prev => {
+      const updatedExpenses = [...prev];
+      updatedExpenses[index] = { ...updatedExpenses[index], [field]: value };
+      return updatedExpenses;
+    });
   };
 
   const handleRemoveExpense = (index) => {
-    let alert = window.confirm("Are you sure you want to delete this expense?");
-    if (!alert) return;
-    remove(index);
+    if (window.confirm("Are you sure you want to delete this expense?")) {
+      setCustomerExpenseData(prev => prev.filter((_, i) => i !== index));
+    }
   };
 
   return (
     <Grid item xs={12}>
       <Box>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h6" color="primary">
-            Customer Expenses
-          </Typography>
+          <Typography variant="h6" color="primary">Customer Expenses</Typography>
         </Box>
 
-        <Stack spacing={2}>
-          {fields.map((expense, index) => (
-            <Paper key={expense.id} elevation={1} sx={{ p: 2, '&:hover': { bgcolor: 'background.default' } }}>
+        {/* Select Service Dropdown */}
+        <Select
+          fullWidth
+          size="small"
+          value={selectedService}
+          onChange={(e) => setSelectedService(e.target.value)}
+        >
+          <MenuItem value="">Select Service</MenuItem>
+          {itemServices.map((service) => (
+            <MenuItem key={service._id} value={service._id}>
+              {service.label}
+            </MenuItem>
+          ))}
+        </Select>
+
+        {/* Add Expense Button (Disabled if no service is selected) */}
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={handleAddExpense}
+          size="small"
+          sx={{ mt: 2 }}
+          disabled={!selectedService} // Disable button until service is selected
+        >
+          Add Expense
+        </Button>
+
+        <Stack spacing={2} mt={2}>
+          {customerExpenseData.map((expense, index) => (
+            <Paper key={index} elevation={1} sx={{ p: 2, '&:hover': { bgcolor: 'background.default' } }}>
               <Grid container spacing={2} alignItems="center">
                 <Grid item xs={12} md={3}>
                   <Select
                     fullWidth
                     size="small"
-                    label="Service"
-                    value={watch(`customerExpense.${index}.service`) || ''}
+                    value={expense.service || ''}
                     onChange={handleExpenseChange(index, 'service')}
                   >
                     <MenuItem value="">Select Service</MenuItem>
@@ -120,26 +138,16 @@ const ItemsTable = ({ fields, register, remove, append, watch, setValue, totals,
                       size="small"
                       type="number"
                       label="Value"
-                      value={watch(`customerExpense.${index}.value`) || ''}
+                      value={expense.value || ''}
                       onChange={handleExpenseChange(index, 'value')}
                     />
                     <Box display="flex" alignItems="center" gap={1}>
                       <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={watch(`customerExpense.${index}.positive`) === true}
-                            onChange={handleExpenseChange(index, 'positive',true)}
-                          />
-                        }
+                        control={<Checkbox checked={expense.positive === true} onChange={handleExpenseChange(index, 'positive', true)} />}
                         label="+"
                       />
                       <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={watch(`customerExpense.${index}.positive`) === false}
-                            onChange={handleExpenseChange(index, 'positive',false)}
-                          />
-                        }
+                        control={<Checkbox checked={expense.positive === false} onChange={handleExpenseChange(index, 'positive', false)} />}
                         label="-"
                       />
                     </Box>
@@ -151,41 +159,26 @@ const ItemsTable = ({ fields, register, remove, append, watch, setValue, totals,
                     fullWidth
                     size="small"
                     label="Description"
-                    value={watch(`customerExpense.${index}.desc`) || ''}
+                    value={expense.desc || ''}
                     onChange={handleExpenseChange(index, 'desc')}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={1}>
-                  <IconButton
-                    color="error"
-                    onClick={() => handleRemoveExpense(index)}
-                    size="small"
-                  >
+                  <IconButton color="error" onClick={() => handleRemoveExpense(index)} size="small">
                     <DeleteIcon />
                   </IconButton>
                 </Grid>
               </Grid>
             </Paper>
           ))}
-          
+
+          {/* Subtotal Calculation */}
           <Typography variant="h6" sx={{ mt: 2, padding: 2 }} color="primary">
-            Sub Total: <Typography component="span" color="text.primary">
-              {totals.subTotal}
-            </Typography>
+            Sub Total: <Typography component="span" color="text.primary">{totals.subTotal}</Typography>
           </Typography>
         </Stack>
       </Box>
-      
-      <Button
-        variant="contained"
-        startIcon={<AddIcon />}
-        onClick={handleAddExpense}
-        size="small"
-        sx={{ mt: 2 }}
-      >
-        Add Expense
-      </Button>
     </Grid>
   );
 };

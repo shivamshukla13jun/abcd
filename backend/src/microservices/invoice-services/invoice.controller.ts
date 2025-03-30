@@ -326,10 +326,14 @@ export const updateInvoice = async (req: Request, res: Response, next: NextFunct
     dueDate = new Date(dueDate);
      const files:MulterFile[] = req.files as MulterFile[] || [];
     // Find the load by invoice number
-    const existingLoad = await Load.findOne({ invoiceId: invoiceId }).session(session)
+    const existinvoice=await Invoice.findById(invoiceId)
+    if (!existinvoice) {
+      throw new AppError('invoice not found', 404);
+    }
+    const existingLoad = await Load.findById(existinvoice.loadId).session(session)
     console.log({existingLoad});
     if (!existingLoad) {
-      throw new AppError('Load not found', 404);
+      throw new AppError('invoice not found', 404);
     }
     console.log(existingLoad);
     // check deleted files

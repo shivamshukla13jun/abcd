@@ -136,7 +136,7 @@ const ViewLoad = () => {
         data=load.carrierinvoices;
       }
       console.log("data",data)
-      setEditingInvoice({...data, loadNumber: load.loadNumber,carrierId:load.carrierIds.map(({carrier})=>carrier._id), invoiceNumber: load.loadNumber });
+      setEditingInvoice({ loadNumber: load.loadNumber,carrierId:load.carrierIds?.[0]?.carrier?._id|| "", invoiceNumber: load.loadNumber ,...data,});
     }
     setShowInvoiceModal(true);
   };

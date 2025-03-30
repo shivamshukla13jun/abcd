@@ -25,7 +25,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner/Index';
 
 const CarrierInvoiceForm = ({ onSubmit, initialData }) => {
   const[currenttime,setCurrentTime]=useState(Date.now());
-  console.log("initialData",initialData)
+  console.log("initialData??????",initialData)
   const [searchTerm] = useState(initialData?.loadNumber || '');
   const [attachments, setAttachments] = useState([]);
   const [TAX_OPTIONS, setTAX_OPTIONS] = useState([]);
@@ -50,13 +50,7 @@ const CarrierInvoiceForm = ({ onSubmit, initialData }) => {
     formState: { errors } 
   } = useForm({
     resolver: yupResolver(generateInvoiceSchema),
-    defaultValues: initialData && Object.keys(initialData).length > 4 
-      ? initialData 
-      : {
-          ...initialinvoiceData,
-          tax: '' // Add default empty string for tax
-        }
-  });
+    defaultValues: initialData});
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -151,8 +145,9 @@ const CarrierInvoiceForm = ({ onSubmit, initialData }) => {
           setLoadDetails(loadData);
           const carrierData = loadData.carrierIds?.[0]?.carrier;
           const carrierExpenses = loadData.carrierIds?.[0]?.carrierExpense || [];
-          
+          console.log("carrir data",carrierData)
           const updatedFields = {
+            ...initialinvoiceData,
             invoiceNumber: loadData.loadNumber,
             location: loadData?.deliveryLocationId?.[0]?.address,
             items: loadData?.items,
@@ -163,6 +158,7 @@ const CarrierInvoiceForm = ({ onSubmit, initialData }) => {
             carrierExpense: carrierExpenses,
             loadAmount: loadData.loadAmount,
             dispatchRate: loadData.carrierIds?.[0]?.dispatchRate || 0,
+            ...initialData
           };
           setAttachments(loadData?.files || []);
           reset(updatedFields);
@@ -177,20 +173,7 @@ const CarrierInvoiceForm = ({ onSubmit, initialData }) => {
     };
     fetchLoadDetails();
   }, [debouncedSearchTerm, reset]);
- useEffect(()=>{
-   if(initialData && Object.keys(initialData).length > 4 ){
-    setValue('invoiceDate', initialData.invoiceDate);
-    setValue('dueDate', initialData.dueDate);
-    setValue('location', initialData.location);
-    setValue('loadNumber', initialData.loadNumber);
-    setValue('terms', initialData.terms);
-    setValue('discountPercent', initialData.discountPercent);
-    setValue('paymentOptions', initialData.paymentOptions);
-    setValue('deposit', initialData.deposit);
-    setValue('tax', initialData.tax);
- 
-   }
- },[initialData])
+
  console.log("initialData",initialData)
   const handleFormSubmit = async (data, e) => {
     try {
@@ -200,14 +183,11 @@ const CarrierInvoiceForm = ({ onSubmit, initialData }) => {
       if (!onSubmit) {
         throw new Error('onSubmit handler is not provided');
       }
-
+    console.log("daata",data)
       const formData = new FormData();
       const invoiceData = {
         ...data,
-        attachments: attachments.map(att => ({
-          name: att.name,
-          url: att.url || att.preview
-        }))
+       
       };
 
       console.log('Prepared invoice data:', invoiceData);
