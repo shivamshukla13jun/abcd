@@ -1,6 +1,15 @@
 // frontend/src/redux/Slice/invoiceSlice.js
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { initialinvoiceData } from '../InitialData/invoice';
+import apiService from '@/service/apiService';
+
+export const fetchLoadDetails = createAsyncThunk(
+  'invoice/fetchLoadDetails',
+  async (loadNumber) => {
+    const response = await apiService.getLoadByloadNumber(loadNumber);
+    return response.data;
+  }
+);
 
 const invoiceSlice = createSlice({
   name: 'invoice',
@@ -56,6 +65,34 @@ const invoiceSlice = createSlice({
     resetInvoice: (state) => {
       return {
         ...state,
+        formData: initialinvoiceData,
+        attachments: [],
+        tags: [],
+        isTaxPayable: false,
+        sendLater: false,
+        loadNumber: '',
+        loadDetails: null,
+      }
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchLoadDetails.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchLoadDetails.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.loadDetails = action.payload;
+        // Update form data with load details
+        state.formData = {
+          ...state.formData,
+          ...action.payload
+        };
+      })
+      .addCase(fetchLoadDetails.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.error.message;
+      });
         formData: initialinvoiceData,
         attachments: [],
         tags: [],
