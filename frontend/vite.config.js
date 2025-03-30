@@ -4,11 +4,11 @@ import path from "path";
 
 export default defineConfig({
   plugins: [react()],
-  // server: {
-  //   host: "0.0.0.0", // Allows access from the local network
-  //   port: 3000, // You can set any available port
-  //   open: true, // Automatically opens the browser
-  // },
+  server: {
+    host: "0.0.0.0", // Allows access from the local network
+    port: 5174, // You can set any available port
+    open: true, // Automatically opens the browser
+  },
   css: {
     preprocessorOptions: {
       scss: {
