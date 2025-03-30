@@ -149,60 +149,63 @@ const Sidebar = () => {
         </button>
       </div>
 
-      <Nav className="flex-column py-2">
-        {visibleRoutes.map((item, index) => (
-          <MenuItem
-            key={index}
-            item={item}
-            collapsed={collapsed}
-            hasAccess={hasAccess}
-            location={location}
-          />
-        ))}
+      {/* Scrollable container for navigation list */}
+      <div style={{ flex: 1, overflowY: "auto" }}>
+        <Nav className="flex-column py-2">
+          {visibleRoutes.map((item, index) => (
+            <MenuItem
+              key={index}
+              item={item}
+              collapsed={collapsed}
+              hasAccess={hasAccess}
+              location={location}
+            />
+          ))}
 
-        <Nav.Item>
-          <Link
-            to="/settings"
-            className={`nav-link d-flex align-items-center ${
-              location.pathname === "/settings" ? "active" : ""
-            }`}
-            style={{
-              padding: "12px 20px",
-              color: "#fff",
-              opacity: "0.8",
-              transition: "all 0.3s ease",
-              margin: "2px 8px",
-              borderRadius: "8px",
-            }}
-          >
-            <span className="me-3" style={{ width: "20px", textAlign: "center" }}>
-              <FaIcons.FaCog />
-            </span>
-            {!collapsed && <span>Settings</span>}
-          </Link>
-        </Nav.Item>
+          <Nav.Item>
+            <Link
+              to="/settings"
+              className={`nav-link d-flex align-items-center ${
+                location.pathname === "/settings" ? "active" : ""
+              }`}
+              style={{
+                padding: "12px 20px",
+                color: "#fff",
+                opacity: "0.8",
+                transition: "all 0.3s ease",
+                margin: "2px 8px",
+                borderRadius: "8px",
+              }}
+            >
+              <span className="me-3" style={{ width: "20px", textAlign: "center" }}>
+                <FaIcons.FaCog />
+              </span>
+              {!collapsed && <span>Settings</span>}
+            </Link>
+          </Nav.Item>
 
-        <Nav.Item>
-          <Link
-            onClick={() => dispatch(logout())}
-            to="#"
-            className="nav-link d-flex align-items-center"
-            style={{
-              padding: "12px 20px",
-              color: "#fff",
-              opacity: "0.8",
-              transition: "all 0.3s ease",
-              margin: "2px 8px",
-              borderRadius: "8px",
-            }}
-          >
-            <span className="me-3" style={{ width: "20px", textAlign: "center" }}>
-              <FaIcons.FaSignOutAlt />
-            </span>
-            {!collapsed && <span>Logout</span>}
-          </Link>
-        </Nav.Item>
-      </Nav>
+          <Nav.Item>
+            <Link
+              onClick={() => dispatch(logout())}
+              to="#"
+              className="nav-link d-flex align-items-center"
+              style={{
+                padding: "12px 20px",
+                color: "#fff",
+                opacity: "0.8",
+                transition: "all 0.3s ease",
+                margin: "2px 8px",
+                borderRadius: "8px",
+              }}
+            >
+              <span className="me-3" style={{ width: "20px", textAlign: "center" }}>
+                <FaIcons.FaSignOutAlt />
+              </span>
+              {!collapsed && <span>Logout</span>}
+            </Link>
+          </Nav.Item>
+        </Nav>
+      </div>
     </div>
   );
 };

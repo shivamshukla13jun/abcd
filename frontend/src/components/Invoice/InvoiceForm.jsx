@@ -1,5 +1,5 @@
 import React from 'react';
-import CarrierInvoiceForm from '../Invoice copy/CarrierInvoiceForm';
+import CarrierInvoiceForm from '../CarrierInvoice/CarrierInvoiceForm';
 import CustomerInvoiseForm from './CustomerInvoiseForm';
 
 const InvoiceForm = ({ onSubmit ,initialData,invoiceType="customer"}) => {

@@ -64,3 +64,21 @@
 .sidebar-bg::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
 }
+
+/* Custom scrollbar for the scrollable navigation list */
+.sidebar-bg > div[style*="overflow-y: auto"]::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-bg > div[style*="overflow-y: auto"]::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-bg > div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.sidebar-bg > div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
