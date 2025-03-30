@@ -5,13 +5,17 @@ import { useNavigate } from 'react-router-dom';
 import apiService from "@service/apiService";
 import { toast } from "react-toastify";
 import { formatDate } from '@utils/formatDate';
-import { Modal, Box, Typography } from '@mui/material';
-import InvoiceForm from '@/components/Invoice/InvoiceForm';
+import { Modal, Box, Typography, IconButton } from '@mui/material';
+import { Close as CloseIcon } from '@mui/icons-material';
+import CarrierInvoiceForm from '@/components/CarrierInvoice/CarrierInvoiceForm';
+import CustomerInvoiceForm from '@/components/CustomerInvoice/CustomerInvoiseForm';
 import { FaPencilAlt } from 'react-icons/fa';
 import { useDispatch } from 'react-redux';
 import { resetLoad } from '@redux/Slice/EditloadSlice';
+import { setFormData, setLoadNumber } from '@redux/Slice/invoiceSlice';
 
 import './ViewLoad.scss';
+
 const modalStyle = {
   position: 'absolute',
   top: '50%',
@@ -20,10 +24,12 @@ const modalStyle = {
   width: '90%',
   maxHeight: '90vh',
   bgcolor: 'background.paper',
+  borderRadius: '8px',
   boxShadow: 24,
   p: 4,
   overflow: 'auto'
 };
+
 const LOAD_STATUSES = [
   { key: 'allLoad', label: 'All Loads' },
   { key: 'Pending', label: 'Pending' },
@@ -50,33 +56,69 @@ const ViewLoad = () => {
         setLoads(response.data);
       } catch (error) {
         console.error('Error fetching loads:', error);
-        toast.error('Failed to fetch loads. Please try again later.');
+        toast.error('Failed to fetch loads');
       }
     };
 
     fetchLoads();
   }, [activeTab]);
 
-  const getStatusClass = (status) => {
-    const baseClass = 'view-load__status';
-    switch (status) {
-      case 'Pending':
-        return `${baseClass} ${baseClass}--pending`;
-      case 'Delivered':
-        return `${baseClass} ${baseClass}--delivered`;
-      case 'Cancelled':
-        return `${baseClass} ${baseClass}--cancelled`;
-      case 'Active':
-        return `${baseClass} ${baseClass}--active`;
-      case 'In Progress':
-        return `${baseClass} ${baseClass}--in-transit`;
-      case 'To Be Billed':
-        return `${baseClass} ${baseClass}--to-be-billed`;
-      case 'Dispatched':
-        return `${baseClass} ${baseClass}--dispatched`;
-      default:
-        return baseClass;
+  const handleCreateLoad = () => {
+    navigate("/createload");
+  };
+
+  const handleCreateInvoice = async (data) => {
+    try {
+      if(invoiceType === 'customer') {
+        await apiService.generateInvoice(data);
+      } else {
+        await apiService.generateCarrierInvoice(data);
+      }
+      toast.success('Invoice created successfully');
+      handleCloseModal();
+    } catch (error) {
+      toast.error(error.message || 'Failed to create invoice');
     }
+  };
+
+  const handleEditInvoice = async (data) => {
+    try {
+      if(invoiceType === 'customer') {
+        await apiService.updateInvoice(editingInvoice._id, data);
+      } else {
+        await apiService.updateCarrierInvoice(editingInvoice._id, data);
+      }
+      toast.success('Invoice updated successfully');
+      handleCloseModal();
+    } catch (error) {
+      toast.error(error.message || 'Failed to update invoice');
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowInvoiceModal(false);
+    setEditingInvoice(null);
+    dispatch(setFormData({}));
+    dispatch(setLoadNumber(''));
+  };
+
+  const handleInvoiceClick = (type, load) => {
+    setInvoiceType(type);
+    dispatch(setLoadNumber(load.loadNumber));
+
+    if (type === 'customer' && load.invoice) {
+      setEditingInvoice({ ...load.invoice, loadNumber: load.loadNumber });
+    } else if (type === 'carrier' && load.carrierinvoices) {
+      setEditingInvoice({
+        ...load.carrierinvoices,
+        loadNumber: load.loadNumber,
+        carrierId: load.carrierIds.map(({carrier}) => carrier._id),
+        invoiceNumber: load.loadNumber
+      });
+    } else {
+      setEditingInvoice({ loadNumber: load.loadNumber });
+    }
+    setShowInvoiceModal(true);
   };
 
   const handleEdit = (loadId) => {
@@ -84,63 +126,6 @@ const ViewLoad = () => {
     navigate(`/editload/${loadId}`);
   };
 
-  const handleCreateLoad = () => {
-    // dispatch(resetnewLoad());
-    navigate("/createload");
-  };
-  const handleCreateInvoice = async (data) => {
-    try {
-      console.log("create invlice",data)
-      if(invoiceType === 'customer'){
-       await apiService.generateInvoice(data);
-      }else{
-        await apiService.generateCarrierInvoice(data);
-      }
-      toast.success('Invoice created successfully');
-      setShowInvoiceModal(false);
-    } catch (error) {
-      toast.error('Failed to create invoice');
-      toast.error(error.message);
-    }
-  };
-
-  const handleEditInvoice = async (data) => {
-    try {
-      console.log("edit invlice",{data,editingInvoice:editingInvoice})
-      if(invoiceType === 'customer'){
-      await apiService.updateInvoice(editingInvoice._id, data);
-      }else{
-        await apiService.updateCarrierInvoice(editingInvoice._id, data);
-      }
-      toast.success('Invoice updated successfully');
-      setShowInvoiceModal(false);
-    } catch (error) {
-      console.log("error",error)
-      // toast.error('Failed to update invoice');
-      toast.error(error.message);
-    }
-  };
-  const handleCloseModal = () => {
-    setShowInvoiceModal(false);
-    setEditingInvoice(null);
-  };
-
-  const handleInvoiceClick = (type, load) => {
-    setInvoiceType(type);
-    let data = {};
-    console.log("type",type)
-    if (load.invoice && type === 'customer') {
-      setEditingInvoice({...load.invoice, loadNumber: load.loadNumber});
-    } else {
-      if(load.carrierinvoices){
-        data=load.carrierinvoices;
-      }
-      console.log("data",data)
-      setEditingInvoice({...data, loadNumber: load.loadNumber,carrierId:load.carrierIds.map(({carrier})=>carrier._id), invoiceNumber: load.loadNumber });
-    }
-    setShowInvoiceModal(true);
-  };
-  
   const LoadTable = ({ data }) => (
     <div className="view-load__table-wrapper">
       <Table>
@@ -164,27 +149,23 @@ const ViewLoad = () => {
           </tr>
         </thead>
         <tbody>
-          {Array.isArray(data) && data.length > 0 ? (
+          {data?.length > 0 ? (
             data.map((load) => (
               <tr key={load._id}>
                 <td>{load.loadNumber || "-"}</td>
                 <td>
-                  <span className={getStatusClass(load?.status)}>
-                    {load?.status}
+                  <span className={`view-load__status view-load__status--${load.status?.toLowerCase()}`}>
+                    {load.status}
                   </span>
                 </td>
                 <td>
                   <OverlayTrigger
                     placement="right"
-                    overlay={
-                      <Tooltip>
-                        Select invoice type
-                      </Tooltip>
-                    }
+                    overlay={<Tooltip>Select invoice type</Tooltip>}
                   >
                     <DropdownButton
                       variant="link"
-                      title={load.invoice ? "Edit Invoice" : "Create Invoice"}
+                      title={(load.invoice || load.carrierinvoices) ? "Edit Invoice" : "Create Invoice"}
                       className="view-load__action-btn"
                     >
                       <Dropdown.Item onClick={() => handleInvoiceClick('customer', load)}>
@@ -198,94 +179,66 @@ const ViewLoad = () => {
                 </td>
                 <td>{load.customerId?.customerName || "-"}</td>
                 <td>
-                  {load.pickupLocationId?.length > 0 ? (
-                    <ul className="data-list">
-                      {load.pickupLocationId.map((loc, index) => (
-                        <li key={`${loc._id}-${index}`}>
-                          {loc.address || "-"}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : "-"}
+                  <ul className="data-list">
+                    {load.pickupLocationId?.map((loc, index) => (
+                      <li key={`${loc._id}-${index}`}>{loc.address || "-"}</li>
+                    ))}
+                  </ul>
                 </td>
                 <td>
-                  {load.pickupLocationId?.length > 0 ? (
-                    <ul className="data-list">
-                      {load.pickupLocationId.map((loc, index) => (
-                        <li key={`${loc._id}-${index}`}>
-                          {formatDate(loc.date) || "-"}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : "-"}
+                  <ul className="data-list">
+                    {load.pickupLocationId?.map((loc, index) => (
+                      <li key={`${loc._id}-${index}`}>{formatDate(loc.date) || "-"}</li>
+                    ))}
+                  </ul>
                 </td>
                 <td>
-                  {load.deliveryLocationId?.length > 0 ? (
-                    <ul className="data-list">
-                      {load.deliveryLocationId.map((loc, index) => (
-                        <li key={`${loc._id}-${index}`}>
-                          {loc.address || "-"}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : "-"}
+                  <ul className="data-list">
+                    {load.deliveryLocationId?.map((loc, index) => (
+                      <li key={`${loc._id}-${index}`}>{loc.address || "-"}</li>
+                    ))}
+                  </ul>
                 </td>
                 <td>
-                  {load.deliveryLocationId?.length > 0 ? (
-                    <ul className="data-list">
-                      {load.deliveryLocationId.map((loc, index) => (
-                        <li key={`${loc._id}-${index}`}>
-                          {formatDate(loc.date) || "-"}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : "-"}
+                  <ul className="data-list">
+                    {load.deliveryLocationId?.map((loc, index) => (
+                      <li key={`${loc._id}-${index}`}>{formatDate(loc.date) || "-"}</li>
+                    ))}
+                  </ul>
                 </td>
                 <td>
-                  {load.carrierIds?.length > 0 ? (
-                    <ul className="data-list">
-                      {load.carrierIds.map(({carrier}, index) => (
-                        <li key={`${carrier._id}-${index}`}>
-                          {carrier.primaryContact || "-"}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : "-"}
+                  <ul className="data-list">
+                    {load.carrierIds?.map(({carrier}, index) => (
+                      <li key={`${carrier._id}-${index}`}>{carrier.primaryContact || "-"}</li>
+                    ))}
+                  </ul>
                 </td>
                 <td>
-                {load.carrierIds?.length > 0 ? (
-  <ul className="data-list">
-    {load.carrierIds
-      .flatMap(({ assignDrivers }) => assignDrivers || []) // Flatten correctly
-      .map((driver, index) => (
-        <li key={index}>{driver.driverName}</li> // Access `driverName` correctly
-      ))}
-  </ul>
-) : "-"}
-
+                  <ul className="data-list">
+                    {load.carrierIds?.flatMap(({ assignDrivers }) => assignDrivers || [])
+                      .map((driver, index) => (
+                        <li key={index}>{driver.driverName || "-"}</li>
+                      ))}
+                  </ul>
                 </td>
                 <td>{load.equipmentType || "-"}</td>
                 <td>
-                  {load.carrierIds?.length > 0 ? (
-                    <ul className="data-list">
-                      {load.carrierIds.map((carrier, index) => (
-                        <li key={`${carrier._id}-${index}`}>
-                          {carrier?.driverInfo?.powerunit || "-"}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : "-"}
+                  <ul className="data-list">
+                    {load.carrierIds?.map((carrier, index) => (
+                      <li key={`${carrier._id}-${index}`}>
+                        {carrier?.driverInfo?.powerunit || "-"}
+                      </li>
+                    ))}
+                  </ul>
                 </td>
                 <td>
-                  {load.carrierIds?.length > 0 ? (
-                    <ul className="data-list">
-                      {load.carrierIds.map((carrier, index) => (
-                        <li key={`${carrier._id}-${index}`}>
-                          {carrier?.driverInfo?.trailer || "-"}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : "-"}
+                  <ul className="data-list">
+                    {load.carrierIds?.map((carrier, index) => (
+                      <li key={`${carrier._id}-${index}`}>
+                        {carrier?.driverInfo?.trailer || "-"}
+                      </li>
+                    ))}
+                  </ul>
                 </td>
                 <td>{load.userId?.name || "-"}</td>
                 <td className="text-center">
@@ -296,13 +249,12 @@ const ViewLoad = () => {
                   >
                     <FaPencilAlt />
                   </Button>
-                 
                 </td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="14" className="view-load__empty">
+              <td colSpan="15" className="view-load__empty">
                 No loads found
               </td>
             </tr>
@@ -313,8 +265,6 @@ const ViewLoad = () => {
   );
 
   return (
-    <>
-    
     <div className="view-load">
       <Container fluid className="view-load__container">
         <div className="view-load__header">
@@ -335,25 +285,35 @@ const ViewLoad = () => {
 
         <LoadTable data={loads} />
       </Container>
-    </div>
-    
-    <Modal 
+
+      <Modal 
         open={showInvoiceModal}
         onClose={handleCloseModal}
       >
         <Box sx={modalStyle}>
-          <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
-            {editingInvoice ? `${editingInvoice?._id?"Edit":"Create"} ${invoiceType === 'customer' ? 'Customer' : 'Carrier'} Invoice` : 
-             `${editingInvoice?._id?"Edit":"Create New"}  ${invoiceType === 'customer' ? 'Customer' : 'Carrier'} Invoice`}
-          </Typography>
-          <InvoiceForm
-            onSubmit={editingInvoice?._id ? handleEditInvoice : handleCreateInvoice}
-            initialData={editingInvoice}
-            invoiceType={invoiceType}
-          />
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6" component="h2">
+              {editingInvoice?._id ? 'Edit' : 'Create'} {invoiceType === 'customer' ? 'Customer' : 'Carrier'} Invoice
+            </Typography>
+            <IconButton onClick={handleCloseModal} size="small">
+              <CloseIcon />
+            </IconButton>
+          </Box>
+
+          {invoiceType === 'customer' ? (
+            <CustomerInvoiceForm
+              onSubmit={editingInvoice?._id ? handleEditInvoice : handleCreateInvoice}
+              initialData={editingInvoice}
+            />
+          ) : (
+            <CarrierInvoiceForm
+              onSubmit={editingInvoice?._id ? handleEditInvoice : handleCreateInvoice}
+              initialData={editingInvoice}
+            />
+          )}
         </Box>
       </Modal>
-    </>
+    </div>
   );
 };
 
