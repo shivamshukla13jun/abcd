@@ -1,70 +1,87 @@
+
 import React from 'react';
-import { Grid, Paper, Typography, TextField, Box, MenuItem } from '@mui/material';
-const TotalsSection = ({ totals, register, watch ,TAX_OPTIONS=[]}) => {
-  
+import { Grid, TextField, Typography, MenuItem } from '@mui/material';
+import { useDispatch } from 'react-redux';
+import { updateFormField } from '@/redux/Slice/invoiceSlice';
+import { TAX_OPTIONS } from '../constants';
+
+const TotalsSection = ({ formData, totals }) => {
+  const dispatch = useDispatch();
+
+  const handleChange = (field) => (event) => {
+    dispatch(updateFormField({ field, value: event.target.value }));
+  };
+
   return (
-    
-          <Paper sx={{ p: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-              <Typography variant='strong' fontWeight={600}>Subtotal</Typography>
-              <Typography variant='strong' fontWeight={600}>${totals.subTotal.toFixed(2)}</Typography>
-            </Box>
+    <Grid container spacing={2}>
+      <Grid item xs={12}>
+        <Typography variant="h6" color="primary">Totals</Typography>
+      </Grid>
+      
+      <Grid item xs={6}>
+        <TextField
+          fullWidth
+          label="Subtotal"
+          value={totals.subTotal || 0}
+          disabled
+        />
+      </Grid>
+      
+      <Grid item xs={6}>
+        <TextField
+          fullWidth
+          type="number"
+          label="Discount %"
+          value={formData.discountPercent || 0}
+          onChange={handleChange('discountPercent')}
+        />
+      </Grid>
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Typography variant='strong' fontWeight={600}>Discount Percent</Typography>
-                <TextField
-                  size="small"
-                  type="number"
-                  {...register('discountPercent')}
-                  sx={{ width: 70, mx: 1 }}
-                  InputProps={{
-                    endAdornment: '%'
-                  }}
-                />
-              </Box>
-              <Typography variant='strong' fontWeight={600}>${totals.totalDiscount.toFixed(2)}</Typography>
-            </Box>
+      <Grid item xs={6}>
+        <TextField
+          select
+          fullWidth
+          label="Tax"
+          value={formData.tax || ''}
+          onChange={handleChange('tax')}
+        >
+          {TAX_OPTIONS.map((option) => (
+            <MenuItem key={option.id} value={option.id}>
+              {option.name} ({option.rate}%)
+            </MenuItem>
+          ))}
+        </TextField>
+      </Grid>
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-              <Typography variant='strong' fontWeight={600}>Total</Typography>
-              <Typography variant='strong' fontWeight={600}>${totals.total.toFixed(2)}</Typography>
-            </Box>
-            {/* Deposit */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant='strong' fontWeight={600}>Deposit</Typography>
-                <TextField
-                  size="small"
-                  type="number"
-                  {...register('deposit')}
-                  // sx={{ width: 70, mx: 1 }}
-                />
-            </Box>
-            {/* Add Tax From DropwDown */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-              <Typography variant='strong' fontWeight={600}>Tax</Typography>
-              <TextField
-                select
-                size="small"
-                {...register('tax')}
-                // sx={{ width: 70, mx: 1 }}
-              >
-                {TAX_OPTIONS.map((tax) => (
-                  <MenuItem key={tax._id} value={tax._id}>
-                  {tax.label} ({tax.value}%)
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Box>
-            {/* Total After Tax */}
+      <Grid item xs={6}>
+        <TextField
+          fullWidth
+          label="Tax Amount"
+          value={totals.taxAmount || 0}
+          disabled
+        />
+      </Grid>
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant='strong' fontWeight={600}>Balance Due</Typography>
-              <Typography variant='strong' fontWeight={600}>${totals.balanceDue.toFixed(2)}</Typography>
-            </Box>
-          </Paper>
-       
+      <Grid item xs={6}>
+        <TextField
+          fullWidth
+          type="number"
+          label="Deposit"
+          value={formData.deposit || 0}
+          onChange={handleChange('deposit')}
+        />
+      </Grid>
+
+      <Grid item xs={6}>
+        <TextField
+          fullWidth
+          label="Balance Due"
+          value={totals.balanceDue || 0}
+          disabled
+        />
+      </Grid>
+    </Grid>
   );
 };
 
-export default TotalsSection; 
+export default TotalsSection;

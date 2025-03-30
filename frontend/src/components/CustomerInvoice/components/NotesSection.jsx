@@ -1,37 +1,27 @@
-import React from 'react';
-import { Grid, TextField } from '@mui/material';
 
-const NotesSection = ({ register, errors }) => {
+import React from 'react';
+import { TextField, Typography, Box } from '@mui/material';
+import { useDispatch } from 'react-redux';
+import { updateFormField } from '@/redux/Slice/invoiceSlice';
+
+const NotesSection = ({ formData }) => {
+  const dispatch = useDispatch();
+
   return (
-    <Grid item xs={12}>
-      <Grid container spacing={3}>
-        <Grid item md={12}>
-          <TextField
-            fullWidth
-            label="Customer Notes"
-            multiline
-            rows={8}
-            {...register('customerNotes')}
-            error={!!errors.customerNotes}
-            helperText={errors.customerNotes?.message}
-            placeholder="Enter Customer Notes"
-          />
-        </Grid>
-        <Grid item md={12}>
-          <TextField
-            fullWidth
-            label="Terms and Conditions"
-            multiline
-            rows={6.5}
-            {...register('terms_conditions')}
-            error={!!errors.terms_conditions}
-            helperText={errors.terms_conditions?.message}
-            placeholder="Enter Terms and Conditions"
-          />
-        </Grid>
-      </Grid>
-    </Grid>
+    <Box>
+      <Typography variant="h6" color="primary" gutterBottom>
+        Notes
+      </Typography>
+      <TextField
+        fullWidth
+        multiline
+        rows={4}
+        value={formData.notes || ''}
+        onChange={(e) => dispatch(updateFormField({ field: 'notes', value: e.target.value }))}
+        placeholder="Add any additional notes here..."
+      />
+    </Box>
   );
 };
 
-export default NotesSection; 
+export default NotesSection;
