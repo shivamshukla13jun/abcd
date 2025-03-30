@@ -208,14 +208,14 @@ const ViewLoad = () => {
                 </td>
                 <td>
                   <ul className="data-list">
-                    {load.carrierIds?.map(({carrier}, index) => (
-                      <li key={`${carrier._id}-${index}`}>{carrier.primaryContact || "-"}</li>
+                    {load?.carrierIds?.map(({carrier}, index) => (
+                      <li key={`${carrier?._id}-${index}`}>{carrier?.primaryContact || "-"}</li>
                     ))}
                   </ul>
                 </td>
                 <td>
                   <ul className="data-list">
-                    {load.carrierIds?.flatMap(({ assignDrivers }) => assignDrivers || [])
+                    {load?.carrierIds?.flatMap(({ assignDrivers }) => assignDrivers || [])
                       .map((driver, index) => (
                         <li key={index}>{driver.driverName || "-"}</li>
                       ))}
@@ -224,8 +224,8 @@ const ViewLoad = () => {
                 <td>{load.equipmentType || "-"}</td>
                 <td>
                   <ul className="data-list">
-                    {load.carrierIds?.map((carrier, index) => (
-                      <li key={`${carrier._id}-${index}`}>
+                    {load?.carrierIds?.map((carrier, index) => (
+                      <li key={`${carrier?._id}-${index}`}>
                         {carrier?.driverInfo?.powerunit || "-"}
                       </li>
                     ))}
@@ -233,8 +233,8 @@ const ViewLoad = () => {
                 </td>
                 <td>
                   <ul className="data-list">
-                    {load.carrierIds?.map((carrier, index) => (
-                      <li key={`${carrier._id}-${index}`}>
+                    {load?.carrierIds?.map((carrier, index) => (
+                      <li key={`${carrier?._id}-${index}`}>
                         {carrier?.driverInfo?.trailer || "-"}
                       </li>
                     ))}

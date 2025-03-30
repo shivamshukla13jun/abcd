@@ -5,8 +5,8 @@ import { updateFormField } from '@/redux/Slice/invoiceSlice';
 
 const ItemsTable = () => {
   const dispatch = useDispatch();
-  const { formData, itemServices } = useSelector(state => state.invoice);
-  const carrierExpenses = formData.carrierExpense || [];
+  const { formData, status } = useSelector(state => state?.invoice);
+  const carrierExpenses = formData?.carrierExpense || [];
 
   const handleExpenseChange = (index, field) => (event) => {
     const newExpenses = [...carrierExpenses];
@@ -36,8 +36,8 @@ const ItemsTable = () => {
                   >
                     <MenuItem value="">Select Service</MenuItem>
                     {itemServices?.map((service) => (
-                      <MenuItem key={service._id} value={service._id}>
-                        {service.label}
+                      <MenuItem key={service?._id} value={service?._id}>
+                        {service?.label}
                       </MenuItem>
                     ))}
                   </Select>
@@ -49,14 +49,14 @@ const ItemsTable = () => {
                       size="small"
                       type="number"
                       label="Value"
-                      value={expense.value || ''}
+                      value={expense?.value || ''}
                       onChange={handleExpenseChange(index, 'value')}
                     />
                     <Box display="flex" alignItems="center" gap={1}>
                       <FormControlLabel
                         control={
                           <Checkbox
-                            checked={expense.positive === true}
+                            checked={expense?.positive === true}
                             onChange={handleExpenseChange(index, 'positive')}
                           />
                         }
@@ -65,7 +65,7 @@ const ItemsTable = () => {
                       <FormControlLabel
                         control={
                           <Checkbox
-                            checked={expense.positive === false}
+                            checked={expense?.positive === false}
                             onChange={handleExpenseChange(index, 'positive')}
                           />
                         }
@@ -79,7 +79,7 @@ const ItemsTable = () => {
                     fullWidth
                     size="small"
                     label="Description"
-                    value={expense.desc || ''}
+                    value={expense?.desc || ''}
                     onChange={handleExpenseChange(index, 'desc')}
                   />
                 </Grid>

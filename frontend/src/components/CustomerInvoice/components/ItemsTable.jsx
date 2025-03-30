@@ -5,7 +5,7 @@ import { updateFormField } from '@/redux/Slice/invoiceSlice';
 
 const ItemsTable = () => {
   const dispatch = useDispatch();
-  const { formData, itemServices } = useSelector(state => state.invoice);
+  const { formData, itemServices } = useSelector(state => state?.invoice);
   const customerExpenses = formData.customerExpense || [];
 
   const handleExpenseChange = (index, field) => (event) => {
@@ -36,8 +36,8 @@ const ItemsTable = () => {
                   >
                     <MenuItem value="">Select Service</MenuItem>
                     {itemServices?.map((service) => (
-                      <MenuItem key={service._id} value={service._id}>
-                        {service.label}
+                      <MenuItem key={service?._id} value={service?._id}>
+                        {service?.label}
                       </MenuItem>
                     ))}
                   </Select>
