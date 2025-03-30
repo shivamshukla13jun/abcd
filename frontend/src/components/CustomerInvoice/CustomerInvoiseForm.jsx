@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   Button,
   Grid,
@@ -11,7 +10,6 @@ import {
 import { Send } from '@mui/icons-material';
 import apiService from '@/service/apiService';
 import './InvoiceForm.scss';
-import { initialinvoiceData } from '@/redux/InitialData/invoice';
 import useDebounce from '@/hooks/useDebounce';
 import { toast } from 'react-toastify';
 import ItemsTable from './components/ItemsTable';
@@ -20,235 +18,144 @@ import AttachmentsSection from './components/AttachmentsSection';
 import HeaderSection from './components/HeaderSection';
 import CustomerSection from './components/CustomerSection';
 import NotesSection from './components/NotesSection';
-import { generateInvoiceSchema } from '@/schema/auth/invoiceSchema';
 import LoadingSpinner from '@/components/common/LoadingSpinner/Index';
+import {
+  setFormData,
+  updateFormField,
+  setAttachments,
+  addAttachment,
+  removeAttachment,
+  setLoadNumber,
+  fetchLoadDetails,
+  updateTotals
+} from '@/redux/Slice/invoiceSlice';
 
-const CustomerInvoiceForm = ({ onSubmit, initialData }) => {
-  const[currenttime,setCurrentTime]=useState(Date.now());
-  const [searchTerm] = useState(initialData?.loadNumber || '');
-  const [attachments, setAttachments] = useState([]);
-  const [TAX_OPTIONS, setTAX_OPTIONS] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [loadDetails, setLoadDetails] = useState(null);
-  const [totals, setTotals] = useState({
-    subTotal: 0,
-    totalDiscount: 0,
-    total: 0,
-    taxAmount: 0,
-    balanceDue: 0
-  });
-
-  const debouncedSearchTerm = useDebounce(searchTerm, 800);
-
+const CustomerInvoiceForm = ({ onSubmit }) => {
+  const dispatch = useDispatch();
   const { 
-    register, 
-    handleSubmit, 
-    watch, 
-    reset, 
-    setValue, 
-    control, 
-    formState: { errors } 
-  } = useForm({
-    resolver: yupResolver(generateInvoiceSchema),
-    defaultValues: initialData || initialinvoiceData
-  });
+    formData, 
+    attachments, 
+    loadNumber,
+    loadDetails,
+    status,
+    totals,
+    TAX_OPTIONS 
+  } = useSelector(state => state.invoice);
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "customerExpense"
-  });
+  const debouncedLoadNumber = useDebounce(loadNumber, 800);
 
-  // Cleanup object URLs
   useEffect(() => {
-    return () => {
-      attachments.forEach(file => {
-        if (file.preview) URL.revokeObjectURL(file.preview);
-      });
+    if (debouncedLoadNumber) {
+      dispatch(fetchLoadDetails(debouncedLoadNumber));
+    }
+  }, [debouncedLoadNumber, dispatch]);
+
+  useEffect(() => {
+    const calculateTotals = () => {
+      const subTotal = formData.customerRate || 0;
+      const discountPercent = formData.discountPercent || 0;
+      const totalDiscount = (subTotal * discountPercent) / 100;
+
+      const taxOption = TAX_OPTIONS.find(option => option._id === formData.tax);
+      const taxRate = taxOption?.value || 0;
+      const taxAmount = (subTotal * taxRate) / 100;
+
+      const total = subTotal - totalDiscount + taxAmount;
+      const balanceDue = total - (formData.deposit || 0);
+
+      dispatch(updateTotals({
+        subTotal,
+        totalDiscount,
+        taxAmount,
+        total,
+        balanceDue
+      }));
     };
-  }, [attachments]);
 
-  // Fetch tax options
-  useEffect(() => {
-    const fetchTaxOptions = async () => {
-      try {
-        const response = await apiService.getTaxOptions();
-        setTAX_OPTIONS(response.data);
-      } catch (error) {
-        console.error('Error fetching tax options:', error);
-      }
-    };
-    fetchTaxOptions();
-  }, []);
+    calculateTotals();
+  }, [formData, TAX_OPTIONS, dispatch]);
 
-  // Calculate totals
-  const getSubtotal = () => {
-    const baseAmount = parseFloat(watch("customerRate")) || 0;
-    const totalExpenses = fields.reduce((sum, expense) => {
-      const amount = parseFloat(expense.value) || 0;
-      return expense.positive ? sum + amount : sum - amount;
-    }, 0);
-    return baseAmount + totalExpenses;
-  };
-  useEffect(() => {
-    const subTotal = getSubtotal();
-    const discountPercent = parseFloat(watch('discountPercent')) || 0;
-    const totalDiscount = (subTotal * discountPercent) / 100;
-
-    const taxId = watch('tax');
-    const taxOption = TAX_OPTIONS.find(option => option._id === taxId);
-    const taxRate = taxOption?.value || 0;
-    const taxAmount = (subTotal * taxRate) / 100;
-
-    const total = subTotal - totalDiscount + taxAmount;
-    const deposit = parseFloat(watch('deposit')) || 0;
-    const balanceDue = total - deposit;
-
-    setValue('subTotal', subTotal);
-    setValue('totalDiscount', totalDiscount);
-    setValue('taxAmount', taxAmount);
-    setValue('totalAmount', total);
-    setValue('total', total);
-    setValue('balanceDue', balanceDue);
-
-    setTotals({ 
-      subTotal, 
-      totalDiscount, 
-      taxAmount, 
-      total, 
-      balanceDue 
-    });
-  }, [
-    watch("discountPercent"),
-    watch("tax"),
-    watch("deposit"),
-    watch("customerRate"),
-    fields,currenttime,
-    setValue,
-  ]);
-  
-  // Fetch load details
-  useEffect(() => {
-    const fetchLoadDetails = async () => {
-      if (!debouncedSearchTerm) return;
-
-      try {
-        setLoading(true);
-        const response = await apiService.getLoadByloadNumber(debouncedSearchTerm);
-        if (response?.data) {
-          const loadData = response.data;
-          setLoadDetails(loadData);
-
-          const updatedFields = {
-            invoiceNumber: loadData.loadNumber,
-            location: loadData?.deliveryLocationId?.[0]?.address,
-            items: loadData?.items,
-            customerEmail: loadData?.customerId?.email,
-            customerName: loadData?.customerId?.customerName,
-            customerAddress: loadData?.customerId?.address,
-            terms: loadData?.customerId?.paymentTerms?.[0]?._id,
-            customerId: loadData?.customerId?._id,
-            customerExpense: loadData?.customerExpense || [],
-            customerRate: loadData?.customerRate,
-          };
-
-          setAttachments(loadData?.files || []);
-          reset(updatedFields);
-        }
-      } catch (error) {
-        toast.error("No load found with this number");
-        reset(initialinvoiceData);
-        setLoadDetails(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchLoadDetails();
-  }, [debouncedSearchTerm, reset]);
-
-  const handleFormSubmit = async (data) => {
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
     try {
-      const formData = new FormData();
+      const formDataObj = new FormData();
       const invoiceData = {
-        ...data,
+        ...formData,
         attachments: attachments.map(att => ({
           name: att.name,
           url: att.url || att.preview
         }))
       };
 
-      formData.append("invoiceData", JSON.stringify(invoiceData));
-      
+      formDataObj.append("invoiceData", JSON.stringify(invoiceData));
+
       attachments.forEach(attachment => {
         if (attachment.file) {
-          formData.append('files', attachment.file);
+          formDataObj.append('files', attachment.file);
         }
       });
 
-      await onSubmit(formData);
+      await onSubmit(formDataObj);
+      toast.success('Form submitted successfully');
     } catch (error) {
       console.error("Submission error:", error);
       toast.error(error.message);
     }
   };
 
+  const handleFieldChange = (field, value) => {
+    dispatch(updateFormField({ field, value }));
+  };
+
   return (
     <Paper elevation={3} sx={{ p: 3 }}>
-      <form onSubmit={handleSubmit(handleFormSubmit)}>
-        {loading ? <LoadingSpinner /> : (
+      <form onSubmit={handleFormSubmit}>
+        {status === 'loading' ? <LoadingSpinner /> : (
           <Grid container spacing={3}>
             <Grid item xs={6}>
               <HeaderSection
-                register={register}
-                errors={errors}
-                setValue={setValue}
-                watch={watch}
+                formData={formData}
+                onChange={handleFieldChange}
+                loadNumber={loadNumber}
+                setLoadNumber={(value) => dispatch(setLoadNumber(value))}
               />
             </Grid>
 
             <Grid item xs={6}>
               <CustomerSection
-                register={register}
-                errors={errors}
-                watch={watch}
-                setValue={setValue}
+                formData={formData}
+                onChange={handleFieldChange}
               />
             </Grid>
 
             <ItemsTable
-              fields={fields}
-              register={register}
-              remove={remove}
-              append={append}
-              watch={watch}
-              setValue={setValue}
+              items={formData.customerExpense}
+              onChange={(items) => handleFieldChange('customerExpense', items)}
               totals={totals}
-              setTotals={setTotals}
             />
 
             <Grid item xs={6}>
               <NotesSection
-                register={register}
-                errors={errors}
+                notes={formData.notes}
+                onChange={(value) => handleFieldChange('notes', value)}
               />
             </Grid>
 
             <Grid item xs={6}>
               <TotalsSection
                 totals={totals}
-                register={register}
-                watch={watch}
+                formData={formData}
+                onChange={handleFieldChange}
                 TAX_OPTIONS={TAX_OPTIONS}
-                getSubtotal={getSubtotal}
               />
-              
+
               <Typography variant="subtitle1" gutterBottom>
                 Attachments
               </Typography>
               <AttachmentsSection
                 attachments={attachments}
-                setAttachments={setAttachments}
-                setValue={setValue}
-                watch={watch}
+                onAdd={(file) => dispatch(addAttachment(file))}
+                onRemove={(index) => dispatch(removeAttachment(index))}
               />
             </Grid>
 

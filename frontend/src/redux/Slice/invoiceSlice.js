@@ -1,4 +1,3 @@
-// frontend/src/redux/Slice/invoiceSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { initialinvoiceData } from '../InitialData/invoice';
 import apiService from '@/service/apiService';
@@ -21,6 +20,16 @@ const invoiceSlice = createSlice({
     sendLater: false,
     loadNumber: '',
     loadDetails: null,
+    status: 'idle',
+    error: null,
+    totals: {
+      subTotal: 0,
+      totalDiscount: 0,
+      taxAmount: 0,
+      total: 0,
+      balanceDue: 0
+    },
+    TAX_OPTIONS: []
   },
   reducers: {
     setFormData: (state, action) => {
@@ -37,43 +46,17 @@ const invoiceSlice = createSlice({
       state.attachments.push(action.payload);
     },
     removeAttachment: (state, action) => {
-      state.attachments = state.attachments.filter(
-        (_, index) => index !== action.payload
-      );
-    },
-    setTags: (state, action) => {
-      state.tags = action.payload;
-    },
-    addTag: (state, action) => {
-      state.tags.push(action.payload);
-    },
-    removeTag: (state, action) => {
-      state.tags = state.tags.filter((_, index) => index !== action.payload);
-    },
-    setIsTaxPayable: (state, action) => {
-      state.isTaxPayable = action.payload;
-    },
-    setSendLater: (state, action) => {
-      state.sendLater = action.payload;
+      state.attachments.splice(action.payload, 1);
     },
     setLoadNumber: (state, action) => {
       state.loadNumber = action.payload;
     },
-    setLoadDetails: (state, action) => {
-      state.loadDetails = action.payload;
+    updateTotals: (state, action) => {
+      state.totals = action.payload;
     },
-    resetInvoice: (state) => {
-      return {
-        ...state,
-        formData: initialinvoiceData,
-        attachments: [],
-        tags: [],
-        isTaxPayable: false,
-        sendLater: false,
-        loadNumber: '',
-        loadDetails: null,
-      }
-    },
+    setTaxOptions: (state, action) => {
+      state.TAX_OPTIONS = action.payload;
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -83,25 +66,25 @@ const invoiceSlice = createSlice({
       .addCase(fetchLoadDetails.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.loadDetails = action.payload;
-        // Update form data with load details
         state.formData = {
           ...state.formData,
-          ...action.payload
+          invoiceNumber: action.payload.loadNumber,
+          location: action.payload?.deliveryLocationId?.[0]?.address,
+          items: action.payload?.items,
+          customerEmail: action.payload?.customerId?.email,
+          customerName: action.payload?.customerId?.customerName,
+          customerAddress: action.payload?.customerId?.address,
+          terms: action.payload?.customerId?.paymentTerms?.[0]?._id,
+          customerId: action.payload?.customerId?._id,
+          customerExpense: action.payload?.customerExpense || [],
+          customerRate: action.payload?.customerRate,
         };
+        state.attachments = action.payload?.files || [];
       })
       .addCase(fetchLoadDetails.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.error.message;
       });
-        formData: initialinvoiceData,
-        attachments: [],
-        tags: [],
-        isTaxPayable: false,
-        sendLater: false,
-        loadNumber: '',
-        loadDetails: null,
-      };
-    }
   }
 });
 
@@ -111,14 +94,9 @@ export const {
   setAttachments,
   addAttachment,
   removeAttachment,
-  setTags,
-  addTag,
-  removeTag,
-  setIsTaxPayable,
-  setSendLater,
   setLoadNumber,
-  setLoadDetails,
-  resetInvoice
+  updateTotals,
+  setTaxOptions
 } = invoiceSlice.actions;
 
 export default invoiceSlice.reducer;
