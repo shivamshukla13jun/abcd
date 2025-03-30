@@ -1,33 +1,7 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Box, Grid, Typography, Paper, Stack } from '@mui/material';
+import { Box, Grid, Typography, Paper, Stack, Select, MenuItem, TextField } from '@mui/material';
 import { updateFormField } from '@/redux/Slice/invoiceSlice';
-
-const ItemsTable = ({ items, onChange, totals }) => {
-  const dispatch = useDispatch();
-  
-  const handleItemChange = (value) => {
-    dispatch(updateFormField({ field: 'customerRate', value }));
-  };
-
-  return (
-    <Grid item xs={12}>
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Typography variant="h6" gutterBottom>
-          Invoice Items
-        </Typography>
-        <Box>
-          <Stack spacing={2}>
-            <Typography>Rate: ${items || 0}</Typography>
-            <Typography>Subtotal: ${totals?.subTotal || 0}</Typography>
-          </Stack>
-        </Box>
-      </Paper>
-    </Grid>
-  );
-};
-
-export default ItemsTable;
 
 const ItemsTable = () => {
   const dispatch = useDispatch();
@@ -48,7 +22,6 @@ const ItemsTable = () => {
             Customer Expenses
           </Typography>
         </Box>
-
         <Stack spacing={2}>
           {customerExpenses.map((expense, index) => (
             <Paper key={index} elevation={1} sx={{ p: 2, '&:hover': { bgcolor: 'background.default' } }}>
@@ -79,21 +52,8 @@ const ItemsTable = () => {
                       value={expense.value || ''}
                       onChange={handleExpenseChange(index, 'value')}
                     />
-                    <Box display="flex" alignItems="center" gap={1}>
-                      {/* Positive/Negative checkboxes removed due to incompatibility with edited code */}
-                    </Box>
                   </Box>
                 </Grid>
-                <Grid item xs={12} md={5}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Description"
-                    value={expense.desc || ''}
-                    onChange={handleExpenseChange(index, 'desc')}
-                  />
-                </Grid>
-                {/* Remove button removed due to incompatibility with edited code */}
               </Grid>
             </Paper>
           ))}
