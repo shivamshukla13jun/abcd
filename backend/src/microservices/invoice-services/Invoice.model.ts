@@ -1,21 +1,23 @@
+
 import mongoose, { Schema, Document, Types } from 'mongoose';
 
 export interface IInvoice extends Document {
-  userId: mongoose.Types.ObjectId;
-  tax?: Types.ObjectId;
-  invoiceNumber: string;
-  loadId: mongoose.Types.ObjectId;
-  status: string;
-  invoiceDate: Date;
-  dueDate: Date;
-  location: string;
-  terms: string;
-  customerNotes: string;
-  terms_conditions: string;
-  discountPercent: number;
-  deposit: number;
-  createdAt: Date;
-  updatedAt: Date;
+  userId: mongoose.Types.ObjectId;       // Reference to User model
+  tax?: Types.ObjectId;                  // Reference to Tax model
+  invoiceNumber: string;                 // Unique invoice identifier
+  loadId: mongoose.Types.ObjectId;       // Reference to Load model
+  status: string;                        // Invoice payment status
+  invoiceDate: Date;                     // Date invoice was created
+  dueDate: Date;                         // Payment due date
+  location: string;                      // Invoice location/address
+  terms: mongoose.Types.ObjectId;        // Reference to Terms model
+  customerNotes: string;                 // Notes for customer
+  terms_conditions: string;              // Terms and conditions
+  discountPercent: number;              // Discount percentage
+  deposit: number;                       // Initial deposit amount
+  paymentOptions: string;               // Payment method options
+  createdAt: Date;                      // Record creation timestamp
+  updatedAt: Date;                      // Record update timestamp
 }
 
 const InvoiceSchema: Schema = new Schema({
@@ -26,7 +28,7 @@ const InvoiceSchema: Schema = new Schema({
   },
   tax: {
     type: Schema.Types.ObjectId,
-    ref: 'taxservices',
+    ref: 'taxservices'
   },
   invoiceNumber: { 
     type: String, 
@@ -77,9 +79,8 @@ const InvoiceSchema: Schema = new Schema({
   paymentOptions: {
     type: String,
     required: true,
-    enum: ['Credit Card', 'Cash', 'Check', 'Wire'],
-  },
-
+    enum: ['Credit Card', 'Cash', 'Check', 'Wire']
+  }
 }, {
   timestamps: true,
   toJSON: { virtuals: true },
