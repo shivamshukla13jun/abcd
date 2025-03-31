@@ -23,7 +23,7 @@ const transformLoadData = (apiData) => {
       files: apiData.files || initalLoadData.files,
       items: apiData.items || initalLoadData.items,
       freightCharge: apiData.freightCharge || initalLoadData.freightCharge, 
-      
+      customerRate:apiData.customerRate || initalLoadData.customerRate,
       id: apiData._id || null,
       activeTab: "load",
       showCustomer: !!apiData.customerId,

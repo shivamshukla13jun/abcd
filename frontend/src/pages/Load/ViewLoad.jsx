@@ -12,6 +12,7 @@ import { useDispatch } from 'react-redux';
 import { resetLoad } from '@redux/Slice/EditloadSlice';
 
 import './ViewLoad.scss';
+import { formatCurrency } from '@/utils/formatCurrency';
 const modalStyle = {
   position: 'absolute',
   top: '50%',
@@ -43,20 +44,19 @@ const ViewLoad = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const fetchLoads = async () => {
-      try {
-        const status = activeTab === 'allLoad' ? '' : activeTab;
-        const response = await apiService.getLoads(status);
-        setLoads(response.data);
-      } catch (error) {
-        console.error('Error fetching loads:', error);
-        toast.error('Failed to fetch loads. Please try again later.');
-      }
-    };
-
+  
     fetchLoads();
   }, [activeTab]);
-
+  const fetchLoads = async () => {
+    try {
+      const status = activeTab === 'allLoad' ? '' : activeTab;
+      const response = await apiService.getLoads(status);
+      setLoads(response.data);
+    } catch (error) {
+      console.error('Error fetching loads:', error);
+      toast.error('Failed to fetch loads. Please try again later.');
+    }
+  };
   const getStatusClass = (status) => {
     const baseClass = 'view-load__status';
     switch (status) {
@@ -96,6 +96,7 @@ const ViewLoad = () => {
       }else{
         await apiService.generateCarrierInvoice(data);
       }
+      fetchLoads();
       toast.success('Invoice created successfully');
       setShowInvoiceModal(false);
     } catch (error) {
@@ -112,6 +113,7 @@ const ViewLoad = () => {
       }else{
         await apiService.updateCarrierInvoice(editingInvoice._id, data);
       }
+      fetchLoads();
       toast.success('Invoice updated successfully');
       setShowInvoiceModal(false);
     } catch (error) {
@@ -147,6 +149,7 @@ const ViewLoad = () => {
         <thead>
           <tr>
             <th>Load No</th>
+            <th>Load Amt</th>
             <th>Status</th>
             <th>Invoice</th>
             <th>Customer</th>
@@ -168,6 +171,7 @@ const ViewLoad = () => {
             data.map((load) => (
               <tr key={load._id}>
                 <td>{load.loadNumber || "-"}</td>
+                <td>{formatCurrency(load.loadAmount) || "-"}</td>
                 <td>
                   <span className={getStatusClass(load?.status)}>
                     {load?.status}
@@ -269,8 +273,8 @@ const ViewLoad = () => {
                   {load.carrierIds?.length > 0 ? (
                     <ul className="data-list">
                       {load.carrierIds.map((carrier, index) => (
-                        <li key={`${carrier._id}-${index}`}>
-                          {carrier?.driverInfo?.powerunit || "-"}
+                        <li key={`${carrier?.carrier}-${index}`}>
+                          {carrier?.powerunit || "-"}
                         </li>
                       ))}
                     </ul>
@@ -280,9 +284,9 @@ const ViewLoad = () => {
                   {load.carrierIds?.length > 0 ? (
                     <ul className="data-list">
                       {load.carrierIds.map((carrier, index) => (
-                        <li key={`${carrier._id}-${index}`}>
-                          {carrier?.driverInfo?.trailer || "-"}
-                        </li>
+                       <li key={`${carrier?.carrier}-${index}`}>
+                       {carrier?.trailer || "-"}
+                     </li>
                       ))}
                     </ul>
                   ) : "-"}

@@ -6,6 +6,9 @@ import {
 import { IoIosAdd, IoIosTrash } from 'react-icons/io';
 import apiService from '@/service/apiService';
 import { useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
+import { getServiceType } from '@/utils/getServicetype';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 const Expenses = ({ carrierExpenses, setCarrierExpenses, selectedCarrier, updateCarrierData, assignDrivers, dispatchRate = 0, powerunit, trailer }) => {
   const { loadDetails = {} } = useSelector((state) => state.editload || {});
@@ -25,18 +28,18 @@ const Expenses = ({ carrierExpenses, setCarrierExpenses, selectedCarrier, update
     }
   };
 
+  const newExpense = {
+    value: null,
+    service: '', // Use the selected service
+    positive: true,
+    desc: ""
+  };
   const handleAddExpense = () => {
-    if (!selectedService) {
-      alert("Please select a service before adding an expense.");
-      return;
-    }
+    // if (!selectedService) {
+    //   alert("Please select a service before adding an expense.");
+    //   return;
+    // }
 
-    const newExpense = {
-      value: '',
-      service: selectedService, // Use the selected service
-      positive: false,
-      desc: ""
-    };
 
     const updatedExpenses = [...carrierExpenses, newExpense];
     setCarrierExpenses(updatedExpenses);
@@ -46,9 +49,12 @@ const Expenses = ({ carrierExpenses, setCarrierExpenses, selectedCarrier, update
 
   const handleExpenseChange = (index, field, value) => {
     const updatedExpenses = [...carrierExpenses];
-
+    if (field !== 'service' && !updatedExpenses[index]?.service) {
+      toast.info('Please add a service first.')
+      return
+    }
     if (field === 'service') {
-      updatedExpenses[index] = { ...updatedExpenses[index], service: value };
+      updatedExpenses[index] = { ...newExpense, service: value };
     } else if (field === 'value') {
       updatedExpenses[index] = { ...updatedExpenses[index], value };
     } else if (field === 'positive') {
@@ -70,11 +76,12 @@ const Expenses = ({ carrierExpenses, setCarrierExpenses, selectedCarrier, update
   const getSubtotal = () => {
     const loadAmount = parseFloat(loadDetails.loadAmount) || 0;
     const baseAmount = (dispatchRate / 100) * loadAmount;
+    const totalamount=loadAmount-baseAmount
     const totalExpenses = carrierExpenses.reduce((sum, expense) => {
       const amount = parseFloat(expense.value) || 0;
       return expense.positive ? sum + amount : sum - amount;
     }, 0);
-    return baseAmount + totalExpenses;
+    return totalamount + totalExpenses;
   };
 
   return (
@@ -84,7 +91,7 @@ const Expenses = ({ carrierExpenses, setCarrierExpenses, selectedCarrier, update
       </Typography>
 
       {/* Select Service Dropdown */}
-      <TextField
+      {/* <TextField
         select
         fullWidth
         size="small"
@@ -98,7 +105,7 @@ const Expenses = ({ carrierExpenses, setCarrierExpenses, selectedCarrier, update
             {service.label}
           </MenuItem>
         ))}
-      </TextField>
+      </TextField> */}
 
       {/* Add Expense Button (Disabled until a service is selected) */}
       <Button
@@ -107,7 +114,7 @@ const Expenses = ({ carrierExpenses, setCarrierExpenses, selectedCarrier, update
         onClick={handleAddExpense}
         size="small"
         sx={{ mt: 2 }}
-        disabled={!selectedService} // Disable button if no service selected
+        // disabled={!selectedService} // Disable button if no service selected
       >
         Add Expense
       </Button>
@@ -139,7 +146,7 @@ const Expenses = ({ carrierExpenses, setCarrierExpenses, selectedCarrier, update
                   <TextField
                     fullWidth
                     size="small"
-                    type="number"
+                    type={getServiceType(expense.service, itemServices)}
                     label="Value"
                     value={expense.value || ''}
                     onChange={(e) => handleExpenseChange(idx, 'value', e.target.value)}
@@ -180,7 +187,7 @@ const Expenses = ({ carrierExpenses, setCarrierExpenses, selectedCarrier, update
         <Typography variant="strong" sx={{ mt: 2, padding: 2 }} color="primary">
           Sub Total:  
           <Typography variant="strong" sx={{ mt: 2, padding: 2 }} color="black">
-            {getSubtotal()}
+          {formatCurrency( getSubtotal())}
           </Typography>
         </Typography>
       </Stack>

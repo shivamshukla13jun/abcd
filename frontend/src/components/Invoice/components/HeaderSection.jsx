@@ -3,7 +3,6 @@ import { Grid, TextField, Typography, Box, FormControl, InputLabel, Select, Menu
 import apiService from '@/service/apiService';
 
 const HeaderSection = ({ register, errors, setValue, watch,customerId }) => {
-  console.log("watch",watch())
    const [customers, setCustomers] = useState([]);
    const [loading, setLoading] = useState(false);
   

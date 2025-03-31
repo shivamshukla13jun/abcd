@@ -39,7 +39,7 @@ const CreateLoad = () => {
   const validateTabData = async (tabname) => {
     const validateData = {
         load: loadDetails,
-        customer: customerInformation,
+        customer: {...customerInformation,customerExpense:customerExpense},
         asset: carrierIds,
         pickup: pickupLocations,
         delivery: deliveryLocations,

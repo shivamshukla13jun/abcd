@@ -25,7 +25,6 @@ import LoadingSpinner from '@/components/common/LoadingSpinner/Index';
 
 const CarrierInvoiceForm = ({ onSubmit, initialData }) => {
   const[currenttime,setCurrentTime]=useState(Date.now());
-  console.log("initialData??????",initialData)
   const [searchTerm] = useState(initialData?.loadNumber || '');
   const [attachments, setAttachments] = useState([]);
   const [TAX_OPTIONS, setTAX_OPTIONS] = useState([]);
@@ -86,8 +85,9 @@ const CarrierInvoiceForm = ({ onSubmit, initialData }) => {
   // Calculate totals
   const getSubtotal = () => {
     const loadAmount = parseFloat(watch("loadAmount")) || 0;
-    const dispatchRate = parseFloat(watch("dispatchRate")) || 0; // Ensure valid number
-   const baseAmount=(dispatchRate/100)*loadAmount
+    const dispatchRate = parseFloat(watch("dispatchRate")) || 0;
+    const totalamount = (dispatchRate / 100) * loadAmount;
+    const baseAmount =loadAmount-totalamount
    
     const totalExpenses = fields.reduce((sum, expense) => {
       const amount = parseFloat(expense.value) || 0;
@@ -104,6 +104,7 @@ const CarrierInvoiceForm = ({ onSubmit, initialData }) => {
     const taxOption = TAX_OPTIONS.find(option => option._id === taxId);
     const taxRate = taxOption?.value || 0;
     const taxAmount = (subTotal * taxRate) / 100;
+    console.log("tax amount",taxAmount)
 
     const total = subTotal - totalDiscount + taxAmount;
     const deposit = parseFloat(watch('deposit')) || 0;
@@ -145,7 +146,6 @@ const CarrierInvoiceForm = ({ onSubmit, initialData }) => {
           setLoadDetails(loadData);
           const carrierData = loadData.carrierIds?.[0]?.carrier;
           const carrierExpenses = loadData.carrierIds?.[0]?.carrierExpense || [];
-          console.log("carrir data",carrierData)
           const updatedFields = {
             ...initialinvoiceData,
             invoiceNumber: loadData.loadNumber,
@@ -174,23 +174,18 @@ const CarrierInvoiceForm = ({ onSubmit, initialData }) => {
     fetchLoadDetails();
   }, [debouncedSearchTerm, reset]);
 
- console.log("initialData",initialData)
   const handleFormSubmit = async (data, e) => {
     try {
       e.preventDefault(); // Prevent default form submission
-      console.log('Form submission started', data);
-      
       if (!onSubmit) {
         throw new Error('onSubmit handler is not provided');
       }
-    console.log("daata",data)
       const formData = new FormData();
       const invoiceData = {
         ...data,
        
       };
 
-      console.log('Prepared invoice data:', invoiceData);
       formData.append("invoiceData", JSON.stringify(invoiceData));
       
       attachments.forEach(attachment => {
@@ -200,16 +195,15 @@ const CarrierInvoiceForm = ({ onSubmit, initialData }) => {
       });
 
       await onSubmit(formData);
-      toast.success('Form submitted successfully');
     } catch (error) {
       console.error("Submission error:", error);
       toast.error(error.message || 'Failed to submit form');
     }
   };
-console.log({errors})
+  console.log("errors",errors)
   return (
     <Paper elevation={3} sx={{ p: 3 }}>
-      <form noValidate onSubmit={(e) => handleSubmit((data) => handleFormSubmit(data, e))(e)}>
+      <form  onSubmit={(e) => handleSubmit((data) => handleFormSubmit(data, e))(e)}>
         {loading ? <LoadingSpinner /> : (
           <Grid container spacing={3}>
             <Grid item xs={6}>
@@ -239,6 +233,7 @@ console.log({errors})
               setValue={setValue}
               totals={totals}
               setTotals={setTotals}
+              errors={errors}
             />
 
             <Grid item xs={6}>

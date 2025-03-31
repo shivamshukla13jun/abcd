@@ -26,6 +26,7 @@ import {
   LocationOn as LocationIcon,
   Numbers as NumbersIcon
 } from '@mui/icons-material';
+import  DollarIcon from '@mui/icons-material/AttachMoney';
 import CustomerExpense from './customerExpense';
 
 const CustomerInformation = () => {
@@ -155,7 +156,7 @@ const CustomerInformation = () => {
                     >
                       <Stack spacing={1}>
                         <Box display="flex" alignItems="center" gap={1}>
-                          <NumbersIcon />
+                          <DollarIcon />
                           <Typography variant="caption" color="textSecondary">
                             Rate
                           </Typography>

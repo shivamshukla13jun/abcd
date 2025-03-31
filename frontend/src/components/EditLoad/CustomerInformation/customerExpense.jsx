@@ -9,6 +9,8 @@ import { setCustomerExpense } from '@/redux/Slice/EditloadSlice';
 import { getServiceType } from '@/utils/getServicetype';
 import apiService from '@/service/apiService';
 import { IoIosAdd } from 'react-icons/io';
+import { toast } from 'react-toastify';
+import { formatCurrency } from '@/utils/formatCurrency';
 const CustomerExpense = () => {
   const dispatch = useDispatch();
   const { customerInformation = {}, customerRate = 0, customerExpense = [] } = useSelector((state) => state.editload || {});
@@ -29,19 +31,19 @@ const CustomerExpense = () => {
     }
   };
 
+  const newExpense = {
+    customerId: customerInformation._id,
+    value: '',
+    service: '', // Use selected service
+    positive: true,
+    desc: ""
+  };
   const handleAddExpense = () => {
-    if (!selectedService) {
-      alert("Please select a service before adding an expense.");
-      return;
-    }
+    // if (!selectedService) {
+    //   alert("Please select a service before adding an expense.");
+    //   return;
+    // }
 
-    const newExpense = {
-      customerId: customerInformation._id,
-      value: '',
-      service: selectedService, // Use selected service
-      positive: false,
-      desc: ""
-    };
 
     dispatch(setCustomerExpense([...customerExpense, newExpense]));
     setSelectedService(''); // Reset service selection
@@ -49,19 +51,13 @@ const CustomerExpense = () => {
 
   const handleExpenseChange = (index, field, value) => {
     const updatedExpenses = [...customerExpense];
-
+     if (field !== 'service' && !updatedExpenses[index]?.service) {
+      toast.info('Please add a service first.')
+      return
+    }
     if (field === 'service') {
-      const selectedService = itemServices.find(service => service._id === value);
-      if (selectedService) {
-        updatedExpenses[index] = { ...updatedExpenses[index], service: selectedService._id };
-      }
+      updatedExpenses[index] = { ...newExpense, service: value };
     }
-    
-    if (!updatedExpenses[index].service) {
-      alert("Please select a service first.");
-      return;
-    }
-
     updatedExpenses[index] = { ...updatedExpenses[index], [field]: value };
     dispatch(setCustomerExpense(updatedExpenses));
   };
@@ -92,7 +88,7 @@ const CustomerExpense = () => {
               Customer Expenses
             </Typography>
           {/* Select Service Dropdown */}
-           <TextField
+           {/* <TextField
              select
              fullWidth
              size="small"
@@ -106,7 +102,7 @@ const CustomerExpense = () => {
                  {service.label}
                </MenuItem>
              ))}
-           </TextField>
+           </TextField> */}
      
            {/* Add Expense Button (Disabled until a service is selected) */}
            <Button
@@ -115,7 +111,7 @@ const CustomerExpense = () => {
              onClick={handleAddExpense}
              size="small"
              sx={{ mt: 2 }}
-             disabled={!selectedService} // Disable button if no service selected
+            //  disabled={!selectedService} // Disable button if no service selected
            >
              Add Expense
            </Button>
@@ -148,7 +144,7 @@ const CustomerExpense = () => {
                   <TextField
                     fullWidth
                     size="small"
-                    type={getServiceType(expense.service, itemServices) === "number" ? "number" : "text"}
+                    type={getServiceType(expense.service, itemServices)}
                     label="Value"
                     value={expense.value || ''}
                     onChange={(e) => handleExpenseChange(index, 'value', e.target.value)}
@@ -188,7 +184,7 @@ const CustomerExpense = () => {
         ))}
            <Typography variant="strong" sx={{ mt: 2, padding: 2 }} color="primary">
           Sub Total:  <Typography variant="strong" sx={{ mt: 2, padding: 2 }} color="black">
-            {getSubtotal()}
+            {formatCurrency( getSubtotal())}
           </  Typography>
         </Typography>
       </Stack>

@@ -48,7 +48,7 @@ const EditLoad = () => {
     freightCharge,
   } = useSelector((state) => state.editload);
   const AllData = useSelector((state) => state.editload);
-  console.log("AllData".AllData)
+
   useEffect(() => {
     if (loadId) {
       dispatch(resetLoad()); // Reset state before fetching new data
@@ -70,7 +70,7 @@ const EditLoad = () => {
   const validateTabData = async (tabname) => {
     const validateData = {
       load: loadDetails,
-      customer: customerInformation,
+      customer: {...customerInformation,customerExpense:customerExpense},
       asset: carrierIds,
       pickup: pickupLocations,
       delivery: deliveryLocations,
@@ -154,7 +154,6 @@ const EditLoad = () => {
       // Prepare load data
       const loadData = {
         ...loadDetails,
-        
         customerExpense,customerRate:customerRate || 0,
         customerId: customerInformation._id,
         carrierIds: carrierIds,

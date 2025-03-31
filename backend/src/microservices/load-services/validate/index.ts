@@ -15,7 +15,7 @@ import { LocationClass } from "../models/Location.model";
   locationClass: Yup.mixed().oneOf(Object.values(LocationClass)).required('Location class is required'),
   date: Yup.date().required('Date is required'),
   time: Yup.string().required('Time is required'),
-  requirements: Yup.array().min(1),
+  requirements: Yup.array(),
   notes: Yup.string().nullable(),
 });
 
@@ -165,7 +165,7 @@ const PickupLocationSchema = Yup.array().of(
     locationClass: Yup.string().oneOf(Object.values(LocationClass)).required('Location class is required'),
     date: Yup.date().required('Date is required'),
     time: Yup.string().required('Time is required'),
-    requirements: Yup.array().min(1),
+    requirements: Yup.array(),
     notes: Yup.string().nullable(),
   })
 );
@@ -181,7 +181,7 @@ const DeliveryLocationSchema = Yup.array().of(
     locationClass: Yup.mixed().oneOf(Object.values(LocationClass)).required('Location class is required'),
     date: Yup.date().required('Date is required'),
     time: Yup.string().required('Time is required'),
-    requirements: Yup.array().min(1),
+    requirements: Yup.array(),
     notes: Yup.string().nullable(),
   })
 );

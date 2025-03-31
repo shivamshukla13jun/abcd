@@ -25,11 +25,10 @@ export const initalLoadData = {
     mcNumber: "",
     usdot: "",
   },
+  customerRate:0,
   customerExpense:[],
   carrierIds: [
     {
-      powerunit:null,
-      trailer:null,
       carrier:null,
       powerunit:"",
       trailer:"",
@@ -70,11 +69,6 @@ export const initalLoadData = {
   freightCharge: 'Prepaid',
   id: null,
   activeTab: "load",
-  showCustomer: false,
-  showAsset: false,
-  showDriver: false,
-  showPickup: false,
-  showDelivery: false,
 };
 
 export const initialLoadetails = initalLoadData.loadDetails;

@@ -9,6 +9,13 @@ const parseJsonString = (jsonString: string) => {
 };
 
 export const generateInvoiceSchema = yup.object().shape({
+  tax:yup.string().nullable().optional().transform((value, originalValue) => {
+    console.log("originalValue",originalValue)
+    if(typeof originalValue === 'string' && originalValue==""){
+      return null
+    }
+    return value;
+  }),
   invoiceNumber: yup.string().required('Load number is required'),
   invoiceDate: yup.date().default(new Date()).transform((value) => value ? new Date(value) : null).required('Invoice date is required'),
   dueDate: yup.date().default(new Date()).transform((value) => value ? new Date(value) : null).required('Due date is required'),
@@ -18,25 +25,14 @@ export const generateInvoiceSchema = yup.object().shape({
   customerName: yup.string().required('Customer name is required'),
   customerEmail: yup.string().email('Invalid email').required('Customer email is required'),
   customerAddress: yup.string().required('Customer address is required'),
-  items: yup.array().of(
+  customerExpense: yup.array().of(
     yup.object().shape({
-      itemDetails: yup.string().required('Item details are required'),
-      description: yup.string(),
-      qty: yup.number().required('Quantity is required').min(0).default(0),
-      rate: yup.number().required('Rate is required').min(0).default(0),
-      // discount: yup.number().min(0).default(0),
-      tax: yup.number().min(0).max(100).default(0), // Tax as number
-      amount: yup.number().min(0).default(0)
+      service: yup.string().label('Service').required('Expense type is required'),
+      value: yup.mixed().label('Value').required('value is required'),
+      desc: yup.string().label('Description'),
+      positive: yup.boolean().label('Is Positive')
     })
-  ).transform((value, originalValue) => {
-    if(typeof value === 'string'){
-      return JSON.parse(value);
-    }
-    return value;
-  }),
-  customerExpense: yup
-  .array()
-  .default([]),
+  ).label('Customer Expenses').default([]).notRequired(),
   deletedfiles: yup.array().default([]),
   customerNotes: yup.string(),
   terms_conditions: yup.string(),
@@ -53,23 +49,5 @@ export const generateInvoiceSchema = yup.object().shape({
       return isNaN(parsed) ? 0 : parsed;
     }
     return value || 0;
-  }).min(0).default(0),
-
-totalAmount: yup.number().transform((value, originalValue) => {
-    if (typeof originalValue === 'string') {
-      const parsed = parseFloat(originalValue);
-      return isNaN(parsed) ? 0 : parsed;
-    }
-    return value || 0;
-  }).min(0).default(0),
-
-balanceDue: yup.number().transform((value, originalValue) => {
-    if (typeof originalValue === 'string') {
-      const parsed = parseFloat(originalValue);
-      return isNaN(parsed) ? 0 : parsed;
-    }
-    return value || 0;
-  }).min(0).default(0),
-  
-
+  }).default(0),
 });

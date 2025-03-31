@@ -151,9 +151,6 @@ const getAllLoads = async (req: Request, res: Response, next: NextFunction): Pro
           as: 'driverDetails'
         }
         },
-      
-     
-     
       {
         $lookup: {
           from: 'users',
@@ -162,8 +159,6 @@ const getAllLoads = async (req: Request, res: Response, next: NextFunction): Pro
           as: 'userId'
         }
       },
-     
-     
   // Merge carriers into carrierIds array without overriding existing fields
         {
         $set: {
@@ -214,8 +209,6 @@ const getAllLoads = async (req: Request, res: Response, next: NextFunction): Pro
         }
         }
         },
-
-     
       {
         $unwind: {
           path: '$customerId',
@@ -359,7 +352,7 @@ const getAllLoads = async (req: Request, res: Response, next: NextFunction): Pro
       {
         $limit: Number(limit)
       }
-    ]);
+    ])
 
     const totalItems = await Load.countDocuments(matchStage);
 

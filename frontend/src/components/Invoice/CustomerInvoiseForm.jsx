@@ -24,7 +24,6 @@ import { generateInvoiceSchema } from '@/schema/auth/invoiceSchema';
 import LoadingSpinner from '@/components/common/LoadingSpinner/Index';
 
 const CustomerInvoiceForm = ({ onSubmit, initialData }) => {
-  console.log("initialData?????????????",initialData)
   const [currenttime, setCurrentTime] = useState(Date.now());
   const [attachments, setAttachments] = useState([]);
   const [TAX_OPTIONS, setTAX_OPTIONS] = useState([]);
@@ -49,7 +48,7 @@ const CustomerInvoiceForm = ({ onSubmit, initialData }) => {
 
   /** Cleanup object URLs when component unmounts */
   useEffect(() => {
-    return () => attachments.forEach(file => file.preview && URL.revokeObjectURL(file.preview));
+    return () => attachments.forEach(file => {file.preview && URL.revokeObjectURL(file.preview)});
   }, [attachments]);
 
   /** Fetch tax options */
@@ -90,6 +89,7 @@ const CustomerInvoiceForm = ({ onSubmit, initialData }) => {
             customerId: loadData?.customerId?._id,
             customerExpense: loadData?.customerExpense || [],
             customerRate: loadData?.customerRate,
+            tax:loadData?.tax,
             ...initialData,  
           });
           setAttachments(loadData?.files || []);
@@ -157,7 +157,7 @@ const CustomerInvoiceForm = ({ onSubmit, initialData }) => {
       toast.error(error.message);
     }
   };
-
+  console.log("errors",errors)
   return (
     <Paper elevation={3} sx={{ p: 3 }}>
       <form onSubmit={handleSubmit(handleFormSubmit)}>
@@ -169,7 +169,7 @@ const CustomerInvoiceForm = ({ onSubmit, initialData }) => {
             <Grid item xs={6}>
               <CustomerSection register={register} errors={errors} watch={watch} setValue={setValue} />
             </Grid>
-            <ItemsTable fields={fields} register={register} remove={remove} append={append} watch={watch} setValue={setValue} totals={totals} setTotals={setTotals} />
+            <ItemsTable fields={fields} register={register} remove={remove} append={append} watch={watch} setValue={setValue} totals={totals} setTotals={setTotals} errors={errors} />
             <Grid item xs={6}>
               <NotesSection register={register} errors={errors} />
             </Grid>

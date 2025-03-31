@@ -15,12 +15,18 @@ import {
 } from "@mui/material";
 import { Add as AddIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import apiService from "@/service/apiService";
+import { toast } from "react-toastify";
+import { getServiceType } from "@/utils/getServicetype";
+import { formatCurrency } from "@/utils/formatCurrency";
 
-const ItemsTable = ({ fields, register, remove, append, watch, setValue, totals, setTotals }) => {
+const ItemsTable = ({ fields, register, remove, append, watch, setValue, totals, setTotals,errors }) => {
   const [itemServices, setItemServices] = useState([]);
   const [carrierExpenseData, setCarrierExpenseData] = useState(watch("carrierExpense") || []);
   const [selectedService, setSelectedService] = useState(""); // New state for service selection
-
+  const loadAmount = parseFloat(watch("loadAmount")) || 0;
+  const dispatchRate = parseFloat(watch("dispatchRate")) || 0;
+  const totalamount = (dispatchRate / 100) * loadAmount;
+  const baseAmount =loadAmount-totalamount
   useEffect(() => {
     fetchItemServices();
   }, []);
@@ -33,19 +39,14 @@ const ItemsTable = ({ fields, register, remove, append, watch, setValue, totals,
     setTotals((prev) => ({
       ...prev,
       subTotal: getSubtotal(),
-      carrierSubTotal: getCarrierSubtotal(),
     }));
   }, [carrierExpenseData, watch("customerRate"), watch("carrierRate")]);
 
   const getSubtotal = () => {
-    const baseAmount = parseFloat(watch("customerRate")) || 0;
     return baseAmount + calculateTotalExpenses();
   };
 
-  const getCarrierSubtotal = () => {
-    const baseAmount = parseFloat(watch("carrierRate")) || 0;
-    return baseAmount + calculateTotalExpenses();
-  };
+ 
 
   const calculateTotalExpenses = () => {
     return carrierExpenseData.reduce((sum, expense) => {
@@ -62,23 +63,30 @@ const ItemsTable = ({ fields, register, remove, append, watch, setValue, totals,
       console.error("Error fetching services:", err);
     }
   };
-
+  const newExpense = { value: "", service: selectedService, positive: true, desc: "" }
   const handleAddExpense = () => {
-    if (!selectedService) {
-      alert("Please select a service before adding an expense.");
-      return;
-    }
-
-    setCarrierExpenseData([...carrierExpenseData, { value: "", service: selectedService, positive: false, desc: "" }]);
+    setCarrierExpenseData([...carrierExpenseData,newExpense]);
     setSelectedService(""); // Reset service selection after adding an expense
   };
-
   const handleExpenseChange = (index, field) => (e) => {
+    if (field !== 'service' && !carrierExpenseData[index]?.service) {
+      toast.info('Please add a service first.')
+      return
+    }
+    
     const updatedExpenses = [...carrierExpenseData];
-    updatedExpenses[index] = {
-      ...updatedExpenses[index],
-      [field]: field === "positive" ? e.target.checked : e.target.value
-    };
+    if (field === "service") {
+      updatedExpenses[index] = {
+        ...updatedExpenses[index],
+        ...newExpense,
+        [field]: e.target.value
+      };
+    } else {
+      updatedExpenses[index] = {
+        ...updatedExpenses[index],
+        [field]: field === "positive" ? e.target.checked : e.target.value
+      };
+    }
     setCarrierExpenseData(updatedExpenses);
   };
 
@@ -93,12 +101,13 @@ const ItemsTable = ({ fields, register, remove, append, watch, setValue, totals,
       <Box>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Typography variant="h6" color="primary">
-            Carrier Expenses
+            Carrier Expenses | Dispatch Rate ({(dispatchRate)}%)
           </Typography>
+
         </Box>
 
         {/* Select Service Dropdown */}
-        <Select
+        {/* <Select
           fullWidth
           size="small"
           value={selectedService}
@@ -110,7 +119,7 @@ const ItemsTable = ({ fields, register, remove, append, watch, setValue, totals,
               {service.label}
             </MenuItem>
           ))}
-        </Select>
+        </Select> */}
 
         {/* Add Expense Button (Disabled if no service is selected) */}
         <Button
@@ -119,7 +128,7 @@ const ItemsTable = ({ fields, register, remove, append, watch, setValue, totals,
           onClick={handleAddExpense}
           size="small"
           sx={{ mt: 2 }}
-          disabled={!selectedService} // Disable button until service is selected
+        // disabled={!selectedService} // Disable button until service is selected
         >
           Add Expense
         </Button>
@@ -134,6 +143,7 @@ const ItemsTable = ({ fields, register, remove, append, watch, setValue, totals,
                     size="small"
                     value={expense.service}
                     onChange={handleExpenseChange(index, "service")}
+                    error={Boolean(errors?.carrierExpense?.[index]?.service)}
                   >
                     <MenuItem value="">Select Service</MenuItem>
                     {itemServices.map((service) => (
@@ -142,6 +152,11 @@ const ItemsTable = ({ fields, register, remove, append, watch, setValue, totals,
                       </MenuItem>
                     ))}
                   </Select>
+                  {errors?.carrierExpense?.[index]?.service && (
+                    <Typography variant="caption" color="error">
+                      {errors.carrierExpense[index].service.message}
+                    </Typography>
+                  )}
                 </Grid>
 
                 <Grid item xs={12} md={3}>
@@ -149,10 +164,12 @@ const ItemsTable = ({ fields, register, remove, append, watch, setValue, totals,
                     <TextField
                       fullWidth
                       size="small"
-                      type="number"
+                      type={getServiceType(expense.service, itemServices)}
                       label="Value"
                       value={expense.value || ""}
                       onChange={handleExpenseChange(index, "value")}
+                      error={Boolean(errors?.carrierExpense?.[index]?.value)}
+                      helperText={errors?.carrierExpense?.[index]?.value?.message}
                     />
                     <Box display="flex" alignItems="center" gap={1}>
                       <FormControlLabel
@@ -174,6 +191,8 @@ const ItemsTable = ({ fields, register, remove, append, watch, setValue, totals,
                     label="Description"
                     value={expense.desc}
                     onChange={handleExpenseChange(index, "desc")}
+                    error={Boolean(errors?.carrierExpense?.[index]?.desc)}
+                    helperText={errors?.carrierExpense?.[index]?.desc?.message}
                   />
                 </Grid>
 
@@ -188,10 +207,8 @@ const ItemsTable = ({ fields, register, remove, append, watch, setValue, totals,
 
           {/* Subtotal Calculation */}
           <Typography variant="h6" sx={{ mt: 2, padding: 2 }} color="primary">
-            Sub Total:{" "}
-            <Typography component="span" color="text.primary">
-              {totals.subTotal}
-            </Typography>
+          Sub Total: <Typography component="span" color="text.primary">{formatCurrency(totals.subTotal)}</Typography>
+
           </Typography>
         </Stack>
       </Box>

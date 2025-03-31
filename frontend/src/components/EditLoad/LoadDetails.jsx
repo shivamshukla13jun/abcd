@@ -28,6 +28,7 @@ const LoadDetails = () => {
                 </div>
                 <div className='col-sm-3'>
                     <label className="form-label">Load Amout</label>
+                    <div className="input-group">
                     <input
                         type="number"
                         className="form-control"
@@ -37,6 +38,10 @@ const LoadDetails = () => {
                         value={loadDetails.loadAmount || ''}
                         onChange={handleChange}
                     />
+                      <div className="input-group-append">
+                            <span className="input-group-text">$</span>
+                        </div>
+                        </div>
                 </div>
                 <div className="col-sm-3">
                     <label className="form-label">Load Status</label>
